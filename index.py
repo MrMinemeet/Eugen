@@ -1,5 +1,6 @@
 import json
 import sys
+import random
 
 if sys.version_info < (3, 8):
     exit("Python 3.8 or greater required!")
@@ -50,6 +51,12 @@ client = EugenBot(intents=intents)
 @client.event
 async def on_ready():
     print(f"Logged in as {client.user} (ID: {client.user.id})")
+    log_channel = client.get_channel(config["log_channel"])
+
+    startup_message = random.choice(
+        ["Well, if I was a robot, which I'm not, at least I'm well put together.", "Hello! I Like Money.",
+         "A 5 letter word for happiness - MONEY."])
+    await log_channel.send(startup_message)
 
 
 @client.tree.command(name="ping", description="Just checks if commands work. Answers with a pong")
@@ -72,13 +79,17 @@ async def whoami(interaction: discord.Interaction):
 
 @client.tree.command(name="shutdown", description="Eugen will go to sleep. If my master tells me so")
 async def shutdown(interaction: discord.Interaction):
-    print(f"{interaction.user} used 'whoami' command.")
+    log_channel = client.get_channel(config["log_channel"])
+    print(f"{interaction.user} used 'shutdown' command.")
     # Check if it is owner (me at the moment)
     if str(interaction.user) != 'MrMinemeet#0815':
-        await interaction.response.send_message("You are not my master!")
+        await interaction.response.send_message("You are not my master, I only fight for the mighty moby dollar!")
     else:
-        print("Master requested a shutdown")
-        await interaction.response.send_message("Ok master. I'll rest now")
+        await log_channel.send("Shutting down...")
+        shutdown_message = random.choice(
+            ["You know what they say: \"If it ain't broke, don't fix it.\" ~ And I'm broken",
+             "What doesn't kill you, usually succeeds in the second attempt. ~ This is the second time"])
+        await interaction.response.send_message(shutdown_message)
         await client.close()
 
 
