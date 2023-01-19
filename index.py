@@ -70,11 +70,11 @@ if __name__ == "__main__":
     async def whoami(interaction: discord.Interaction):
         print(f"{interaction.user} used 'whoami' command.")
 
-        await interaction.response.send_message(f"You are {interaction.user} sending a message from "
-                                                f"{interaction.user.guild} in {interaction.user.channel}. Your top most "
-                                                f"role is {interaction.user.top_role} and you joined this server on"
-                                                f" {interaction.user.joined_at}"
-                                                )
+        await interaction.response.send_message(
+            f"You are {interaction.user} sending a message from '{interaction.user.guild}' in "
+            f"'{interaction.channel.name}'. Your top most role is {interaction.user.top_role} and you joined this "
+            f"server on {interaction.user.joined_at}. You got {len(interaction.user.roles)} roles in total."
+        )
 
 
     @client.tree.command(name="shutdown", description="Eugen will go to sleep. If my master tells me so")
