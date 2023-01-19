@@ -32,9 +32,15 @@ if config.get("token", None) is None:
     # No token found in config
     config["token"] = input("Please enter the bot's token: ").strip()
 
-    # Store new token
-    with open("config.json", "w+", encoding="utf-8") as config_file:
-        json.dump(config, config_file, indent=4)
+if config.get("log_channel", None) is None:
+    # No log channel found in config
+    config["log_channel"] = int(input("Please enter the log channel's ID: ").strip())
+
+
+# Store updated config
+with open("config.json", "w+", encoding="utf-8") as config_file:
+    json.dump(config, config_file, indent=4)
+
 
 intents = discord.Intents.default()
 intents.message_content = True
