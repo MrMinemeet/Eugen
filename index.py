@@ -10,7 +10,8 @@ import discord
 
 class EugenBot(discord.Client):
     def __init__(self, *, intend: discord.Intents):
-        super().__init__(intents=intend)
+        activity = discord.Activity(name='💰 💸 💵', type=discord.ActivityType.watching)
+        super().__init__(intents=intend, activity=activity)
         self.tree = discord.app_commands.CommandTree(self)
 
     async def setup_hook(self) -> None:
