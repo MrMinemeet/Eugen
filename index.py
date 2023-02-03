@@ -52,25 +52,28 @@ if __name__ == "__main__":
     @client.event
     async def on_ready():
         print(f"Logged in as {client.user} (ID: {client.user.id})")
-        log_channel = client.get_channel(config["log_channel"])
 
         startup_message = random.choice(
             ["Well, if I was a robot, which I'm not, at least I'm well put together.", "Hello! I Like Money.",
              "A 5 letter word for happiness - MONEY."])
-        await log_channel.send(startup_message)
+        await log(startup_message, True)
+
+
+    async def log(log_message: str, channel_only: bool = False):
+        LOG_CHANNEL = client.get_channel(config["log_channel"])
+        if not channel_only:
+            print(log_message)
+        await LOG_CHANNEL.send(log_message)
 
 
     @client.tree.command(name="ping", description="Just checks if commands work. Answers with a pong")
     async def ping(interaction: discord.Interaction):
-        print(f"{interaction.user} used 'ping' command.")
-
+        await log(f"{interaction.user} used the 'ping' command")
         await interaction.response.send_message("pong!")
 
 
     @client.tree.command(name="whoami", description="Get some information about yourself")
     async def whoami(interaction: discord.Interaction):
-        print(f"{interaction.user} used 'whoami' command.")
-
         await interaction.response.send_message(
             f"You are {interaction.user} sending a message from '{interaction.user.guild}' in "
             f"'{interaction.channel.name}'. Your top most role is {interaction.user.top_role} and you joined this "
@@ -80,13 +83,11 @@ if __name__ == "__main__":
 
     @client.tree.command(name="shutdown", description="Eugen will go to sleep. If my master tells me so")
     async def shutdown(interaction: discord.Interaction):
-        log_channel = client.get_channel(config["log_channel"])
-        print(f"{interaction.user} used 'shutdown' command.")
         # Check if it is owner (me at the moment)
         if str(interaction.user) != 'MrMinemeet#0815':
             await interaction.response.send_message("You are not my master, I only fight for the mighty moby dollar!")
         else:
-            await log_channel.send("Shutting down...")
+            await log("Shutting down...", True)
             shutdown_message = random.choice(
                 ["You know what they say: \"If it ain't broke, don't fix it.\" ~ And I'm broken",
                  "What doesn't kill you, usually succeeds in the second attempt. ~ This is the second time"])
