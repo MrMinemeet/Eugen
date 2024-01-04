@@ -12,7 +12,7 @@ import java.time.LocalDateTime
  * @param description The description of the class
  * @param location The location of the class
  */
-data class Class(
+data class Session(
 	val isExam: Boolean,
 	val lvaNr: UInt,
 	val semester: Semester,
