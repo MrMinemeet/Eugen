@@ -13,7 +13,7 @@ import java.time.LocalDateTime
  */
 data class Class(
 	val lvaNr: UInt,
-	val semester: UInt,
+	val semester: Semester,
 	val start: LocalDateTime,
 	val end: LocalDateTime,
 	val description: String,

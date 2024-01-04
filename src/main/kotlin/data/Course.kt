@@ -1,4 +1,4 @@
-package data
+package org.example.data
 
 import java.net.URL
 
@@ -12,7 +12,7 @@ import java.net.URL
  */
 data class Course(
 	val lvaNr: UInt,
-	val semester: UInt,
+	val semester: Semester,
 	val lvaName: String,
 	val lecturer: List<String>,
 	val url: URL,
