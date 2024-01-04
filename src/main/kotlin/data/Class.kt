@@ -4,6 +4,7 @@ import java.time.LocalDateTime
 
 /**
  * Represents a class at a specific time
+ * @param isExam Whether the class is an exam or not
  * @param lvaNr The lva number of the class
  * @param semester The semester of the class
  * @param start The start time of the class
@@ -12,6 +13,7 @@ import java.time.LocalDateTime
  * @param location The location of the class
  */
 data class Class(
+	val isExam: Boolean,
 	val lvaNr: UInt,
 	val semester: Semester,
 	val start: LocalDateTime,
