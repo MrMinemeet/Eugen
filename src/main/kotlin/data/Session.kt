@@ -13,7 +13,7 @@ import java.time.LocalDateTime
  */
 data class Session(
 	val isExam: Boolean,
-	val lvaNr: UInt,
+	val lvaNr: String,
 	val start: LocalDateTime,
 	val end: LocalDateTime,
 	val description: String,

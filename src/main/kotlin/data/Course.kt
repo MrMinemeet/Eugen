@@ -13,7 +13,7 @@ import java.net.URL
  */
 data class Course(
 	val lvaType: LvaType,
-	val lvaNr: UInt,
+	val lvaNr: String,
 	val semester: Semester,
 	val lvaName: String,
 	val lecturer: List<String>,
