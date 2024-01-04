@@ -1,0 +1,19 @@
+package data
+
+import java.net.URL
+
+/**
+ * Represents a course itself
+ * @param lvaNr The lva number of the course
+ * @param semester The semester of the course
+ * @param lvaName The name of the course
+ * @param lecturer The lecturer of the course
+ * @param url The url of the course
+ */
+data class Course(
+	val lvaNr: UInt,
+	val semester: UInt,
+	val lvaName: String,
+	val lecturer: List<String>,
+	val url: URL,
+)
