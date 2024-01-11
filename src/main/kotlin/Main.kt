@@ -1,5 +1,6 @@
 package org.example
 
+import assignStudentToCourse
 import createTables
 import insertCourse
 import insertStudent
@@ -23,4 +24,6 @@ fun main(args: Array<String>) {
     createTables()
     insertCourse(courses.first())
     insertStudent(student)
+    assignStudentToCourse(student, courses.first())
+    assignStudentToCourse(student, courses.last())
 }

@@ -34,14 +34,15 @@ fun createLecturerAssignmentTable() {
 
 fun createStudentTable() {
     val statement = connection.createStatement()
-    val stmtStr =  "CREATE TABLE IF NOT EXISTS students (studentId INTEGER PRIMARY KEY, discordName varchar(50), userToken varchar(50))"
+    val stmtStr =  "CREATE TABLE IF NOT EXISTS students (userToken varchar(100) PRIMARY KEY, discordName varchar(50))"
     statement.execute(stmtStr)
 }
 
+//TODO split primary key into two
 fun createStudentEnrollmentTable() {
     val statement = connection.createStatement()
-    val stmtStr =  "CREATE TABLE IF NOT EXISTS studentEnrollment (studentId int, course_id varchar(20), " +
-            "PRIMARY KEY (studentId, course_id), FOREIGN KEY (studentId) REFERENCES students(studentId), " +
+    val stmtStr =  "CREATE TABLE IF NOT EXISTS studentEnrollment (userToken varchar(100), course_id varchar(20), " +
+            "PRIMARY KEY (userToken, course_id), FOREIGN KEY (userToken) REFERENCES students(userToken), " +
             "FOREIGN KEY (course_id) REFERENCES courses(course_id))"
     statement.execute(stmtStr)
 }
@@ -52,7 +53,7 @@ fun insertCourse(course : Course) {
 
     val lvaNr : String = course.lvaNr
     println(lvaNr)
-    val stmtStr = "INSERT INTO courses(lvaNr, lvaName, lvaType, semester, url) VALUES(?,?,?,?,?)"
+    val stmtStr = "INSERT INTO courses(lvaNr, lvaName, lvaType, semester, url) VALUES(?,?,?,?,?) ON CONFLICT(lvaNr) DO UPDATE SET lvaName=excluded.lvaName, lvaType=excluded.lvaType, semester=excluded.semester, url=excluded.url;"
 
     val semester : String = course.semester.toString()
     println(semester)
@@ -73,7 +74,7 @@ fun insertCourse(course : Course) {
 }
 
 fun insertStudent(student : Student) {
-    val stmtStr = "INSERT INTO students(discordName, userToken) VALUES(?,?)"
+    val stmtStr = "INSERT INTO students(userToken, discordName) VALUES(?,?) ON CONFLICT(userToken) DO UPDATE SET discordName=excluded.discordName;"
 
     val discordName : String = student.discordName
     println(discordName)
@@ -82,8 +83,36 @@ fun insertStudent(student : Student) {
 
 
     val stmt = connection.prepareStatement(stmtStr)
-    stmt.setString(1, discordName)
-    stmt.setString(2, userToken)
+    stmt.setString(1, userToken)
+    stmt.setString(2, discordName)
+    stmt.execute()
+}
+
+fun assignStudentToCourse(student : Student, course : Course) {
+    val stmtStr = "INSERT INTO studentEnrollment(userToken, course_id) VALUES(?,?)"
+
+    val userToken : String = student.userToken
+    println(userToken)
+    val course_id : String = course.lvaNr
+    println(course_id)
+
+    val stmt = connection.prepareStatement(stmtStr)
+    stmt.setString(1, userToken)
+    stmt.setString(2, course_id)
+    stmt.execute()
+}
+
+fun assignLecturerToCourse(course : Course, lecturer : String) {
+    val stmtStr = "INSERT INTO lecturerAssignment(lvaNr, lecturer) VALUES(?,?)"
+
+    val lvaNr : String = course.lvaNr
+    println(lvaNr)
+    val lecturer : String = lecturer
+    println(lecturer)
+
+    val stmt = connection.prepareStatement(stmtStr)
+    stmt.setString(1, lvaNr)
+    stmt.setString(2, lecturer)
     stmt.execute()
 }
 
