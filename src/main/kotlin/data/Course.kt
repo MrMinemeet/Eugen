@@ -1,5 +1,6 @@
 package org.example.data
 
+import assignLecturerToCourse
 import java.net.URL
 
 /**
@@ -18,4 +19,10 @@ data class Course(
 	val lvaName: String,
 	val lecturer: List<String>,
 	val url: URL,
-)
+) {
+	fun assignLecturers() {
+		for (l in this.lecturer) {
+			assignLecturerToCourse(this, l)
+		}
+	}
+}

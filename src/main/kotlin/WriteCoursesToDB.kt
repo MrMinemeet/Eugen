@@ -89,7 +89,7 @@ fun insertStudent(student : Student) {
 }
 
 fun assignStudentToCourse(student : Student, course : Course) {
-    val stmtStr = "INSERT INTO studentEnrollment(userToken, course_id) VALUES(?,?)"
+    val stmtStr = "INSERT INTO studentEnrollment(userToken, course_id) VALUES(?,?) ON CONFLICT(userToken, course_id) DO NOTHING"
 
     val userToken : String = student.userToken
     println(userToken)
@@ -103,15 +103,10 @@ fun assignStudentToCourse(student : Student, course : Course) {
 }
 
 fun assignLecturerToCourse(course : Course, lecturer : String) {
-    val stmtStr = "INSERT INTO lecturerAssignment(lvaNr, lecturer) VALUES(?,?)"
-
-    val lvaNr : String = course.lvaNr
-    println(lvaNr)
-    val lecturer : String = lecturer
-    println(lecturer)
+    val stmtStr = "INSERT INTO lecturerAssignment(lvaNr, lecturer) VALUES(?,?) ON CONFLICT(lvaNr, lecturer) DO NOTHING"
 
     val stmt = connection.prepareStatement(stmtStr)
-    stmt.setString(1, lvaNr)
+    stmt.setString(1, course.lvaNr)
     stmt.setString(2, lecturer)
     stmt.execute()
 }
