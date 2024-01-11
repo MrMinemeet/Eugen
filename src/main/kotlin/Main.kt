@@ -1,7 +1,8 @@
 package org.example
 
-import createTable
+import createTables
 import insertCourse
+import insertStudent
 import org.example.data.Student
 import java.net.URI
 
@@ -13,6 +14,13 @@ fun main(args: Array<String>) {
     // Create Student from URL
     val student = Student(args[0], kusssCalendarURL)
     println(student)
-    createTable()
-    insertCourse("1", "AlgoDat 1", "Mike Rotch", "2023W")
+
+    val courses = Kusss.getCourses(student.userToken)
+    for (course in courses) {
+        println(course)
+    }
+
+    createTables()
+    insertCourse(courses.first())
+    insertStudent(student)
 }
