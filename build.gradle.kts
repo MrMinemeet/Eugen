@@ -11,6 +11,8 @@ repositories {
 
 dependencies {
     testImplementation("org.jetbrains.kotlin:kotlin-test")
+    implementation("org.mnode.ical4j:ical4j:4.0.0-rc2")
+    implementation("org.jsoup:jsoup:1.17.2")
 }
 
 tasks.test {
