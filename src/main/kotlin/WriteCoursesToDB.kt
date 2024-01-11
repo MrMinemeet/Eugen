@@ -47,25 +47,29 @@ fun createStudentEnrollmentTable() {
 }
 
 fun insertCourse(course : Course) {
-//TODO
-    /*    val lvaType : String = course.lvaType.toString()
+    val lvaType : String = course.lvaType.toString()
     println(lvaType)
 
     val lvaNr : String = course.lvaNr
     println(lvaNr)
-    val stmtStr = "INSERT INTO courses(course_id, name, lecturer, semester) VALUES(?,?,?,?)"
+    val stmtStr = "INSERT INTO courses(lvaNr, lvaName, lvaType, semester, url) VALUES(?,?,?,?,?)"
 
     val semester : String = course.semester.toString()
     println(semester)
 
+    val lvaName : String = course.lvaName
+    println(lvaName)
+
+    val url : String = course.url.toString()
+
     val stmt = connection.prepareStatement(stmtStr)
-    stmt.setString(1, id)
-    stmt.setString(2, name)
-    stmt.setString(3, lecturer)
+    stmt.setString(1, lvaNr)
+    stmt.setString(2, lvaName)
+    stmt.setString(3, lvaType)
     stmt.setString(4, semester)
+    stmt.setString(5, url)
 
     stmt.execute()
-    println("Added course")*/
 }
 
 fun insertStudent(student : Student) {
