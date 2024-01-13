@@ -1,5 +1,8 @@
 package org.example.data
 
+import assignStudentToCourse
+import insertCourse
+import insertStudent
 import java.net.URL
 import org.example.Kusss
 import org.example.Util
@@ -23,5 +26,16 @@ data class Student(
 	 * @param calendarURL The calendar url of the student
 	 */
 	constructor(discordName: String, calendarURL: URL) :
-			this(discordName, Util.tokenFromURL(calendarURL).orElse(""))
+			this(discordName, Util.tokenFromURL(calendarURL).orElse("")) {
+				insertStudent(this)
+				assignToCourses()
+			}
+
+	fun assignToCourses() {
+		for (course in courses) {
+			insertCourse(course)
+			course.assignLecturers()
+			assignStudentToCourse(this, course)
+		}
+	}
 }
