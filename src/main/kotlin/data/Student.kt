@@ -1,11 +1,11 @@
-package org.example.data
+package data
 
 import assignStudentToCourse
 import insertCourse
 import insertStudent
 import java.net.URL
-import org.example.Kusss
-import org.example.Util
+import Kusss
+import Util
 
 /**
  * Represents a student

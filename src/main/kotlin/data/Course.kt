@@ -1,7 +1,9 @@
-package org.example.data
+package data
 
 import assignLecturerToCourse
 import java.net.URI
+import data.LvaType
+import data.Semester
 
 /**
  * Represents a course itself

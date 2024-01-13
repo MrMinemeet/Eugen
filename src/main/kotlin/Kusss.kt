@@ -1,7 +1,4 @@
-package org.example
-
 import java.io.StringReader
-import java.net.URL
 import java.time.LocalDateTime
 import java.time.Month
 import java.time.format.DateTimeFormatter
@@ -10,10 +7,10 @@ import net.fortuna.ical4j.model.Calendar
 import net.fortuna.ical4j.model.Component
 import net.fortuna.ical4j.model.Property
 import net.fortuna.ical4j.model.component.CalendarComponent
-import org.example.data.Course
-import org.example.data.LvaType
-import org.example.data.Semester
-import org.example.data.Session
+import data.Course
+import data.LvaType
+import data.Semester
+import data.Session
 import java.net.URI
 import org.jsoup.Jsoup
 
