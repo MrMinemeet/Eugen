@@ -25,13 +25,17 @@ data class Student(
 	 * @param discordName The discord name of the student
 	 * @param calendarURL The calendar url of the student
 	 */
-	constructor(discordName: String, calendarURL: URL) :
-			this(discordName, Util.tokenFromURL(calendarURL).orElse("")) {
+	constructor(discordName: String, calendarURL: URL, studentId: Int = -1) :
+			this(
+				discordName,
+				Util.tokenFromURL(calendarURL).orElse(""),
+				studentId = studentId
+			) {
 				insertStudent(this)
 				assignToCourses()
 			}
 
-	fun assignToCourses() {
+	private fun assignToCourses() {
 		for (course in courses) {
 			insertCourse(course)
 			course.assignLecturers()
