@@ -1,7 +1,7 @@
 package org.example.data
 
 import assignLecturerToCourse
-import java.net.URL
+import java.net.URI
 
 /**
  * Represents a course itself
@@ -10,7 +10,7 @@ import java.net.URL
  * @param semester The semester of the course
  * @param lvaName The name of the course
  * @param lecturer The lecturer of the course
- * @param url The url of the course
+ * @param uri The url of the course
  */
 data class Course(
 	val lvaType: LvaType,
@@ -18,7 +18,7 @@ data class Course(
 	val semester: Semester,
 	val lvaName: String,
 	val lecturer: List<String>,
-	val url: URL,
+	val uri: URI,
 ) {
 	fun assignLecturers() {
 		for (l in this.lecturer) {

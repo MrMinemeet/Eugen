@@ -3,6 +3,7 @@ package org.example
 import java.io.BufferedReader
 import java.io.IOException
 import java.io.InputStreamReader
+import java.net.URI
 import java.net.URL
 import java.util.*
 import javax.net.ssl.HttpsURLConnection
@@ -14,11 +15,11 @@ object Util {
 	 * @return The content of the URL as a string
 	 * @throws IOException If an error occurs while reading from the URL
 	 */
-	fun readTextFromURL(url: URL): String {
+	fun readTextFromURL(url: URI): String {
 		val response = StringBuilder()
 		// Read until null is returned// Get ical file from URL
 		try {
-			val huc = url.openConnection() as HttpsURLConnection
+			val huc = url.toURL().openConnection() as HttpsURLConnection
 			val br = BufferedReader(InputStreamReader(huc.inputStream))
 
 			// Read until null is returned

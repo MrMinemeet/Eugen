@@ -14,6 +14,7 @@ import org.example.data.Course
 import org.example.data.LvaType
 import org.example.data.Semester
 import org.example.data.Session
+import java.net.URI
 import org.jsoup.Jsoup
 
 object Kusss {
@@ -22,8 +23,8 @@ object Kusss {
 	private val formatter: DateTimeFormatter by lazy { DateTimeFormatter.ofPattern("uuuuMMdd'T'HHmmss") }
 
 	/** Holds a parsed version of the KUSSS page with all LVAs */
-	private val allLVAs: Map<String, Pair<String, URL>> = Jsoup.parse(
-		Util.readTextFromURL(URL("https://kusss.jku.at/kusss/coursecatalogue-search-lvas.action?")).trim()
+	private val allLVAs: Map<String, Pair<String, URI>> = Jsoup.parse(
+		Util.readTextFromURL(URI("https://kusss.jku.at/kusss/coursecatalogue-search-lvas.action?")).trim()
 	)
 		.select("table")[5] // The 5th table of kusss holds all courses
 		.select("tr") // Get all table rows
@@ -36,7 +37,7 @@ object Kusss {
 
 			val pair = Pair(
 				it.select("b")[1].childNodes()[0].toString(),
-				URL(
+				URI(
 					"https://kusss.jku.at/kusss/" + it.select("a")[0].attr("href").trim()
 				)
 			)
@@ -58,23 +59,23 @@ object Kusss {
 	): Pair<List<Course>, List<Session>> {
 		if (userToken.isEmpty() || userToken.contains("http")) throw IllegalArgumentException("Invalid token provided")
 		return getCoursesAndSessions(
-			URL("https://www.kusss.jku.at/kusss/published-calendar.action?token=${userToken}&lang=de"),
+			URI("https://www.kusss.jku.at/kusss/published-calendar.action?token=${userToken}&lang=de"),
 			calendar
 		)
 	}
 
 	/**
 	 * Returns a list of all [Course]s and [Session]s for a given URL
-	 * @param url The URL to get calendar from
+	 * @param uri The URL to get calendar from
 	 * @return A list of all [Course]s and [Session]s for the given URL
 	 */
 	fun getCoursesAndSessions(
-		url: URL,
+		uri: URI,
 		calendar: Calendar? = null
 	): Pair<List<Course>, List<Session>> {
 		// Get/Create calendar here once, in order to not parse multiple times
-		val cal = (calendar ?: calendarFromKUSSS(url))
-		return Pair(getCourses(url, cal), getSessions(url, cal))
+		val cal = (calendar ?: calendarFromKUSSS(uri))
+		return Pair(getCourses(uri, cal), getSessions(uri, cal))
 	}
 
 	/**
@@ -86,19 +87,19 @@ object Kusss {
 	fun getCourses(userToken: String, calendar: Calendar? = null): List<Course> {
 		if (userToken.isEmpty() || userToken.contains("http")) throw IllegalArgumentException("Invalid token provided")
 		return getCourses(
-			URL("https://www.kusss.jku.at/kusss/published-calendar.action?token=${userToken}&lang=de"),
+			URI("https://www.kusss.jku.at/kusss/published-calendar.action?token=${userToken}&lang=de"),
 			calendar
 		)
 	}
 
 	/**
 	 * Returns a list of all [Course]s for a given URL
-	 * @param url The URL to get calendar from
+	 * @param uri The URL to get calendar from
 	 * @return A list of all [Course]s for the given URL
 
 	 */
-	fun getCourses(url: URL, calendar: Calendar? = null): List<Course> {
-		return (calendar ?: calendarFromKUSSS(url)) // Use passed calendar if possible
+	fun getCourses(uri: URI, calendar: Calendar? = null): List<Course> {
+		return (calendar ?: calendarFromKUSSS(uri)) // Use passed calendar if possible
 			.getComponents<CalendarComponent>()
 			.filter { it.name.equals(Component.VEVENT) } // Filter out any other entries that are not a EVENT
 			.map { calendarComponentToCourse(it.getProperties()) }
@@ -114,7 +115,7 @@ object Kusss {
 	fun getSessions(userToken: String, calendar: Calendar? = null): List<Session> {
 		if (userToken.isEmpty() || userToken.contains("http")) throw IllegalArgumentException("Invalid token provided")
 		return getSessions(
-			URL("https://www.kusss.jku.at/kusss/published-calendar.action?token=${userToken}&lang=de"),
+			URI("https://www.kusss.jku.at/kusss/published-calendar.action?token=${userToken}&lang=de"),
 			calendar
 		)
 	}
@@ -124,7 +125,7 @@ object Kusss {
 	 * @param url The URL to get calendar from
 	 * @return A list of all [Session]s for the given URL
 	 */
-	fun getSessions(url: URL, calendar: Calendar? = null): List<Session> {
+	fun getSessions(url: URI, calendar: Calendar? = null): List<Session> {
 		return (calendar ?: calendarFromKUSSS(url)) // Use passed calendar if possible
 			.getComponents<CalendarComponent>()
 			.filter { it.name.equals(Component.VEVENT) } // Filter out any other entries that are not a EVENT
@@ -178,7 +179,7 @@ object Kusss {
 		val lvaNr = summary[2 + offset].trim().trim('(')
 		val semester = if (summary[3 + offset].contains("W")) Semester.WINTER else Semester.SUMMER
 
-		val (lvaName, url) = getLvaKusssInfo(semester, lvaNr, summary[0 + offset].trim())
+		val (lvaName, uri) = getLvaKusssInfo(semester, lvaNr, summary[0 + offset].trim())
 
 		// Fetch actual data and return Course object
 		return Course(
@@ -187,16 +188,16 @@ object Kusss {
 			semester,
 			lvaName,
 			summary[1 + offset].split(',').map { it.trim() },
-			url
+			uri
 		)
 	}
 
 	/**
 	 * Returns a [Calendar] object from a given KUSSS URL
-	 * @param url The KUSSS URL to parse
+	 * @param uri The KUSSS URL to parse
 	 * @return The parsed [Calendar] object
 	 */
-	private fun calendarFromKUSSS(url: URL) = calendarFromIcsString(icsStringFromUrl(url))
+	private fun calendarFromKUSSS(uri: URI) = calendarFromIcsString(icsStringFromUrl(uri))
 
 	/**
 	 * Returns a [Calendar] object from a given ics string
@@ -210,7 +211,7 @@ object Kusss {
 	 * @param url The ics url to parse
 	 * @return The parsed [Calendar] object
 	 */
-	private fun icsStringFromUrl(url: URL): String = Util.readTextFromURL(url)
+	private fun icsStringFromUrl(uri: URI): String = Util.readTextFromURL(uri)
 
 	/**
 	 * Fetches the name and description URL from KUSSS
@@ -219,7 +220,7 @@ object Kusss {
 	 * @param curLvaName The current LVA Name of the course
 	 * @return A Pair of the name and description URL
 	 */
-	private fun getLvaKusssInfo(semester: Semester, lvaNr: String, curLvaName: String): Pair<String, URL> {
+	private fun getLvaKusssInfo(semester: Semester, lvaNr: String, curLvaName: String): Pair<String, URI> {
 		// If semester != current semester, then just return the current LVA Name.
 		// The request only gets the current semester, and the required semester can't be passed via GET
 		if (semester != getCurrentSemester())
@@ -229,8 +230,8 @@ object Kusss {
 		return allLVAs.getOrDefault(lvaNr, Pair(curLvaName, getUnknownCourseURL(lvaNr)))
 	}
 
-	private fun getUnknownCourseURL(lvaNr: String): URL {
-		return URL("https://kusss.jku.at/kusss/coursecatalogue-searchlvareg.action?lvasearch=$lvaNr")
+	private fun getUnknownCourseURL(lvaNr: String): URI {
+		return URI("https://kusss.jku.at/kusss/coursecatalogue-searchlvareg.action?lvasearch=$lvaNr")
 	}
 
 	/**

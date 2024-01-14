@@ -61,7 +61,7 @@ fun insertCourse(course : Course) {
     val lvaName : String = course.lvaName
     println(lvaName)
 
-    val url : String = course.url.toString()
+    val url : String = course.uri.toString()
 
     val stmt = connection.prepareStatement(stmtStr)
     stmt.setString(1, lvaNr)
