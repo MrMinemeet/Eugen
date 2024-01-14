@@ -13,5 +13,7 @@ fun main(args: Array<String>) {
     for (course in courses) {
         println(course)
     }
+
+    Eugen.client.addEventListener(CommandManager())
 }
 
