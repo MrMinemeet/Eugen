@@ -54,8 +54,17 @@ class CommandManager : ListenerAdapter() {
 				it.hook.sendMessage("Ok :thumbsup:\nYou are now subscribed to the Eugen Service").queue()
 			},
 			OptionData(OptionType.STRING, "url", "URL to the KUSSS calendar", true),
-			OptionData(OptionType.INTEGER, "mat-nr", "Your matrikel number", false)
-		)
+			OptionData(OptionType.INTEGER, "mat-nr", "Your matrikel number", false)),
+
+		Cmd("unkusss",
+			"Unsubscribe from the Eugen Services",
+			{
+				it.deferReply().queue() // Show "thinking…"
+
+				// TODO: Delete user-specific data
+
+				it.hook.sendMessage(":white_check_mark: You are now unsubscribed from my services")
+			})
 	)
 
 	/**
