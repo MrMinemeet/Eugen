@@ -58,6 +58,10 @@ class CommandManager : ListenerAdapter() {
 		)
 	)
 
+	/**
+	 * Is called by [net.dv8tion.jda] when a slash command is received.
+	 * Checks if the received command is in [cmdList] and calls the corresponding [Cmd.onEvent] lambda.
+	 */
 	override fun onSlashCommandInteraction(event: SlashCommandInteractionEvent) {
 		val receivedCommand = event.name
 		println("Received /$receivedCommand")
@@ -74,7 +78,11 @@ class CommandManager : ListenerAdapter() {
 		cmd.onEvent(event)
 	}
 
-	// Guild Command - Instant update but only 100 commands max.
+	/**
+	 * Guild Command - Instant update but only 100 commands max. Only works when [Eugen.devMode] is true.
+	 *
+	 * Is called by [net.dv8tion.jda] when a guild is fully ready. So it will be called for each guild.
+	 */
 	override fun onGuildReady(event: GuildReadyEvent) {
 		super.onGuildReady(event)
 		println("${event.guild.name} is ready. Adding ${cmdList.size} commands.")
@@ -82,6 +90,11 @@ class CommandManager : ListenerAdapter() {
 			registerCommands(event.guild.updateCommands())
 	}
 
+	/**
+	 * Global Command - Takes up to 1 hour to update but "unlimited" commands. Only works when [Eugen.devMode] is false.
+	 *
+	 * Is called by [net.dv8tion.jda] when the bot is fully ready.
+	 */
 	override fun onReady(event: ReadyEvent) {
 		super.onReady(event)
 		if (!Eugen.devMode)
@@ -99,5 +112,10 @@ class CommandManager : ListenerAdapter() {
 			get() = Commands.slash(name, description).addOptions(options)
 	}
 
+	/**
+	 * Registers all commands in [cmdList] to the given [clua]
+	 * @param clua The [CommandListUpdateAction] to register the commands to
+	 * @return The [CommandListUpdateAction] with the commands added
+	 */
 	private fun registerCommands(clua: CommandListUpdateAction) = clua.addCommands(cmdList.map { it.cmd }).queue()
 }
