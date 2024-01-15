@@ -11,6 +11,7 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData
 import net.dv8tion.jda.api.requests.restaction.CommandListUpdateAction
 import util.replyBotError
 import util.replyOK
+import util.replyUserError
 import util.sendMessageBotError
 import util.sendMessageOK
 import util.sendMessageUserError
@@ -20,8 +21,12 @@ class CommandManager : ListenerAdapter() {
 		Cmd("sleep",
 			"Brings Eugen to a peaceful sleep.",
 			{
-				it.replyOK("Going to bed").queue()
-				Eugen.client.shutdown()
+				if (!Eugen.isManager(it.user.name)) {
+					it.replyUserError("You are not my manager!").queue()
+				} else {
+					it.replyOK("Going to bed").queue()
+					Eugen.client.shutdown() // Gracefully shutdown the bot, but send already queued messages
+				}
 			}),
 
 		Cmd("kusss",

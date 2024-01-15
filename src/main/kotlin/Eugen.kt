@@ -1,3 +1,4 @@
+import java.io.File
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.JDABuilder
 import net.dv8tion.jda.api.OnlineStatus
@@ -25,4 +26,12 @@ object Eugen {
 		.setChunkingFilter(ChunkingFilter.ALL)
 		.enableIntents(GatewayIntent.GUILD_MESSAGES, GatewayIntent.GUILD_MEMBERS, GatewayIntent.GUILD_PRESENCES)
 		.build()
+
+	/// List of managers that are allowed to control crucial functions (e.g, /sleep) of the bot
+	private val manager = File("managers.txt").readLines()
+
+	/**
+	 * Checks if the given name is a manager
+	 */
+	fun isManager(name: String) = manager.contains(name)
 }
