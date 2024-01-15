@@ -9,13 +9,18 @@ import net.dv8tion.jda.api.interactions.commands.OptionType
 import net.dv8tion.jda.api.interactions.commands.build.Commands
 import net.dv8tion.jda.api.interactions.commands.build.OptionData
 import net.dv8tion.jda.api.requests.restaction.CommandListUpdateAction
+import util.replyBotError
+import util.replyOK
+import util.sendMessageBotError
+import util.sendMessageOK
+import util.sendMessageUserError
 
 class CommandManager : ListenerAdapter() {
 	private val cmdList = listOf(
 		Cmd("sleep",
 			"Brings Eugen to a peaceful sleep.",
 			{
-				it.reply(":white_check_mark: Going to bed").queue()
+				it.replyOK("Going to bed").queue()
 				Eugen.client.shutdown()
 			}),
 
@@ -32,7 +37,7 @@ class CommandManager : ListenerAdapter() {
 						URI(urlStr)
 				} catch(ex: URISyntaxException) {
 					println("URL could not be parsed: ${ex.message}")
-					it.hook.sendMessage(":warning: Not a valid URI!").queue()
+					it.hook.sendMessageUserError("Not a valid URI!").queue()
 					return@Cmd
 				}
 
@@ -41,7 +46,7 @@ class CommandManager : ListenerAdapter() {
 					matNrStr?.asInt ?: -1
 				} catch (ex: Exception) {
 					println("MatNr could not be parsed: ${ex.message}")
-					it.hook.sendMessage(":warning: Not a valid matrikel number!")
+					it.hook.sendMessageUserError("Not a valid matrikel number!")
 					return@Cmd
 				}
 
@@ -51,7 +56,7 @@ class CommandManager : ListenerAdapter() {
 				// TODO: Do more
 
 				// After doing stuff, "update" message (can be sent up to 15 min after initial command)
-				it.hook.sendMessage(":white_check_mark: You are now subscribed to the Eugen Service").queue()
+				it.hook.sendMessageOK("You are now subscribed to the Eugen Service").queue()
 			},
 			OptionData(OptionType.STRING, "url", "URL to the KUSSS calendar", true),
 			OptionData(OptionType.INTEGER, "mat-nr", "Your matrikel number", false)),
@@ -63,7 +68,7 @@ class CommandManager : ListenerAdapter() {
 
 				// TODO: Delete user-specific data
 
-				it.hook.sendMessage(":white_check_mark: You are now unsubscribed from my services")
+				it.hook.sendMessageOK("You are now unsubscribed from my services")
 			}),
 
 		Cmd("matnr",
@@ -77,7 +82,12 @@ class CommandManager : ListenerAdapter() {
 					member.user.name
 				} catch(ex: IllegalArgumentException) {
 					println("Could not retrieve member: ${ex.message}")
-					it.hook.sendMessage(":no_entry: Could not retrieve mentioned user!")
+					it.hook.sendMessageBotError("Could not retrieve mentioned user!")
+					return@Cmd
+				}
+
+				if (discordName == "Eugen") {
+					it.hook.sendMessageUserError("I don't have a Matrikel Number. I'm running a successful restaurant").queue()
 					return@Cmd
 				}
 
@@ -86,13 +96,10 @@ class CommandManager : ListenerAdapter() {
 
 
 				if (matNr == -1) {
-					it.hook.sendMessage(":white_check_mark: Sorry, I was unable to find a Matrikel Number for the given user").queue()
+					it.hook.sendMessageOK("Sorry, I was unable to find a Matrikel Number for the given user").queue()
 				} else {
-					it.hook.sendMessage(":white_check_mark: Here is the Matrikel Number: `$matNr`")
+					it.hook.sendMessageOK("Here is the Matrikel Number: `$matNr`")
 				}
-
-				println(discordName)
-
 			},
 			OptionData(OptionType.USER, "user", "The user to get the matrikel number from", true))
 	)
@@ -110,7 +117,7 @@ class CommandManager : ListenerAdapter() {
 
 		if (cmd == null) {
 			println("No matching cmd found!")
-			event.reply("Some internal error occurred!")
+			event.replyBotError("Some internal error occurred!")
 			return
 		}
 
