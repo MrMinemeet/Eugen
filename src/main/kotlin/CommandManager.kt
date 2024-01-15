@@ -15,7 +15,7 @@ class CommandManager : ListenerAdapter() {
 		Cmd("sleep",
 			"Brings Eugen to a peaceful sleep.",
 			{
-				it.reply("Going to bed").queue()
+				it.reply(":white_check_mark: Going to bed").queue()
 				Eugen.client.shutdown()
 			}),
 
@@ -31,8 +31,8 @@ class CommandManager : ListenerAdapter() {
 					else
 						URI(urlStr)
 				} catch(ex: URISyntaxException) {
-					println("URL could not be parsed:\n${ex.message}")
-					it.hook.sendMessage("Not a valid URI!").queue()
+					println("URL could not be parsed: ${ex.message}")
+					it.hook.sendMessage(":warning: Not a valid URI!").queue()
 					return@Cmd
 				}
 
@@ -40,8 +40,8 @@ class CommandManager : ListenerAdapter() {
 					val matNrStr = it.getOption("mat-nr")
 					matNrStr?.asInt ?: -1
 				} catch (ex: Exception) {
-					println("MatNr could not be parsed:\n${ex.message}")
-					it.hook.sendMessage("Not a valid matrikel number!")
+					println("MatNr could not be parsed: ${ex.message}")
+					it.hook.sendMessage(":warning: Not a valid matrikel number!")
 					return@Cmd
 				}
 
@@ -51,7 +51,7 @@ class CommandManager : ListenerAdapter() {
 				// TODO: Do more
 
 				// After doing stuff, "update" message (can be sent up to 15 min after initial command)
-				it.hook.sendMessage("Ok :thumbsup:\nYou are now subscribed to the Eugen Service").queue()
+				it.hook.sendMessage(":white_check_mark: You are now subscribed to the Eugen Service").queue()
 			},
 			OptionData(OptionType.STRING, "url", "URL to the KUSSS calendar", true),
 			OptionData(OptionType.INTEGER, "mat-nr", "Your matrikel number", false)),
