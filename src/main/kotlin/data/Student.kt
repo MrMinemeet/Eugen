@@ -1,8 +1,8 @@
 package data
 
-import assignStudentToCourse
-import insertCourse
-import insertStudent
+import DatabaseManager.assignStudentToCourse
+import DatabaseManager.insertCourse
+import DatabaseManager.insertStudent
 import java.net.URL
 import Kusss
 import Util

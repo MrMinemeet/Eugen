@@ -1,6 +1,6 @@
 package data
 
-import assignLecturerToCourse
+import DatabaseManager.assignLecturerToCourse
 import java.net.URI
 import data.LvaType
 import data.Semester
