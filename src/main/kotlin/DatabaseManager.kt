@@ -39,11 +39,10 @@ object DatabaseManager {
 
 	private fun createStudentTable() {
 		val statement = connection.createStatement()
-		val stmtStr =  "CREATE TABLE IF NOT EXISTS students (userToken varchar(100) PRIMARY KEY, discordName varchar(50))"
+		val stmtStr =  "CREATE TABLE IF NOT EXISTS students (userToken varchar(100) PRIMARY KEY, discordName varchar(50), studentId integer)"
 		statement.execute(stmtStr)
 	}
 
-	//TODO split primary key into two
 	private fun createStudentEnrollmentTable() {
 		val statement = connection.createStatement()
 		val stmtStr = """
@@ -84,7 +83,7 @@ object DatabaseManager {
 	}
 
 	fun insertStudent(student : Student, debugOutput: Boolean = false) {
-		val stmtStr = "INSERT INTO students(userToken, discordName) VALUES(?,?) ON CONFLICT(userToken) DO UPDATE SET discordName=excluded.discordName;"
+		val stmtStr = "INSERT INTO students(userToken, discordName, studentId) VALUES(?,?,?) ON CONFLICT(userToken) DO UPDATE SET discordName=excluded.discordName, studentId=excluded.studentId;"
 
 		val discordName : String = student.discordName
 		if (debugOutput) println(discordName)
@@ -95,6 +94,7 @@ object DatabaseManager {
 		val stmt = connection.prepareStatement(stmtStr)
 		stmt.setString(1, userToken)
 		stmt.setString(2, discordName)
+		stmt.setInt(3, student.studentId)
 		stmt.execute()
 	}
 
