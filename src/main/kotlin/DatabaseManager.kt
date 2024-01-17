@@ -5,7 +5,7 @@ import java.sql.DriverManager
 
 
 object DatabaseManager {
-	val devMode: Boolean
+	private val devMode: Boolean
 		get() = true
 
 	private const val DB_FILE_NAME = "CourseList.db"
@@ -31,23 +31,26 @@ object DatabaseManager {
 	private fun createLecturerAssignmentTable() {
 		val statement = connection.createStatement()
 		val stmtStr = """
-        CREATE TABLE IF NOT EXISTS lecturerAssignment (lvaNr int, lecturer varchar(100), 
-        PRIMARY KEY (lvaNr, lecturer), FOREIGN KEY (lvaNr) REFERENCES courses(lvaNr))
-    """.trimIndent()
+	        CREATE TABLE IF NOT EXISTS lecturerAssignment (lvaNr int, lecturer varchar(100), 
+	        PRIMARY KEY (lvaNr, lecturer), FOREIGN KEY (lvaNr) REFERENCES courses(lvaNr))
+	    """.trimIndent()
 		statement.execute(stmtStr)
 	}
 
 	private fun createStudentTable() {
 		val statement = connection.createStatement()
-		val stmtStr =  "CREATE TABLE IF NOT EXISTS students (userToken varchar(100) PRIMARY KEY, discordName varchar(50), studentId integer)"
+		val stmtStr =  """
+			CREATE TABLE IF NOT EXISTS students (discordName varchar(50) PRIMARY KEY, 
+			userToken varchar(100), studentId integer)
+		""".trimIndent()
 		statement.execute(stmtStr)
 	}
 
 	private fun createStudentEnrollmentTable() {
 		val statement = connection.createStatement()
 		val stmtStr = """
-        CREATE TABLE IF NOT EXISTS studentEnrollment (userToken varchar(100), course_id varchar(20),
-        PRIMARY KEY (userToken, course_id), FOREIGN KEY (userToken) REFERENCES students(userToken), 
+        CREATE TABLE IF NOT EXISTS studentEnrollment (discordName varchar(50), course_id varchar(20),
+        PRIMARY KEY (discordName, course_id), FOREIGN KEY (discordName) REFERENCES students(discordName), 
         FOREIGN KEY (course_id) REFERENCES courses(course_id))
     """.trimIndent()
 		statement.execute(stmtStr)
@@ -83,7 +86,11 @@ object DatabaseManager {
 	}
 
 	fun insertStudent(student : Student, debugOutput: Boolean = false) {
-		val stmtStr = "INSERT INTO students(userToken, discordName, studentId) VALUES(?,?,?) ON CONFLICT(userToken) DO UPDATE SET discordName=excluded.discordName, studentId=excluded.studentId;"
+		val stmtStr = """
+			INSERT INTO students(discordName, userToken, studentId) VALUES(?,?,?) 
+			ON CONFLICT(discordName) 
+			DO UPDATE SET userToken=excluded.userToken, studentId=excluded.studentId;
+		""".trimIndent()
 
 		val discordName : String = student.discordName
 		if (debugOutput) println(discordName)
@@ -92,25 +99,29 @@ object DatabaseManager {
 		if (debugOutput) println(userToken)
 
 		val stmt = connection.prepareStatement(stmtStr)
-		stmt.setString(1, userToken)
-		stmt.setString(2, discordName)
+		stmt.setString(1, discordName)
+		stmt.setString(2, userToken)
 		stmt.setInt(3, student.studentId)
 		stmt.execute()
+
+		println("Inserted $discordName")
 	}
 
 	fun assignStudentToCourse(student : Student, course : Course, debugOutput: Boolean = false) {
-		val stmtStr = "INSERT INTO studentEnrollment(userToken, course_id) VALUES(?,?) ON CONFLICT(userToken, course_id) DO NOTHING"
+		val stmtStr = "INSERT INTO studentEnrollment(discordName, course_id) VALUES(?,?) ON CONFLICT(discordName, course_id) DO NOTHING"
 
-		val userToken : String = student.userToken
-		if (debugOutput) println(userToken)
+		val discordName : String = student.discordName
+		if (debugOutput) println(discordName)
+
 		val courseId : String = course.lvaNr
-
 		if (debugOutput) println(courseId)
 
 		val stmt = connection.prepareStatement(stmtStr)
-		stmt.setString(1, userToken)
+		stmt.setString(1, discordName)
 		stmt.setString(2, courseId)
 		stmt.execute()
+
+		println("Assigned $discordName to $courseId")
 	}
 
 	fun assignLecturerToCourse(course : Course, lecturer : String) {
@@ -121,6 +132,8 @@ object DatabaseManager {
 		stmt.setString(2, lecturer)
 		stmt.execute()
 	}
+
+	//
 
 
 }

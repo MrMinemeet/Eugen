@@ -1,8 +1,4 @@
 package data
-
-import DatabaseManager.assignStudentToCourse
-import DatabaseManager.insertCourse
-import DatabaseManager.insertStudent
 import java.net.URL
 import Kusss
 import Util
@@ -30,16 +26,18 @@ data class Student(
 				discordName,
 				Util.tokenFromURL(calendarURL).orElse(""),
 				studentId = studentId
-			) {
-				insertStudent(this)
-				assignToCourses()
-			}
+			)
+
+	init {
+		DatabaseManager.insertStudent(this)
+		assignToCourses()
+	}
 
 	private fun assignToCourses() {
 		for (course in courses) {
-			insertCourse(course)
+			DatabaseManager.insertCourse(course)
 			course.assignLecturers()
-			assignStudentToCourse(this, course)
+			DatabaseManager.assignStudentToCourse(this, course)
 		}
 	}
 }

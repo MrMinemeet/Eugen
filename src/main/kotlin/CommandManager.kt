@@ -55,10 +55,16 @@ class CommandManager : ListenerAdapter() {
 					return@Cmd
 				}
 
-				// By constructing a Student-object, the data is added to the database
-				Student(it.user.globalName!!, kusssUri.toURL(), studentId)
+				try {
+					// By constructing a Student-object, the data is added to the database
+					Student(it.user.globalName!!, kusssUri.toURL(), studentId)
 
-				// TODO: Do more
+					// TODO: Do more
+				} catch(sqlEx: Exception) {
+					println("An error occurred while creating Student: ${sqlEx.message}")
+					it.hook.sendMessageBotError("An internal error occurred!").queue()
+					return@Cmd
+				}
 
 				// After doing stuff, "update" message (can be sent up to 15 min after initial command)
 				it.hook.sendMessageOK("You are now subscribed to the Eugen Service").queue()
