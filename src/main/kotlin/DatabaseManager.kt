@@ -141,6 +141,23 @@ object DatabaseManager {
 		return rs.getInt("studentId")
 	}
 
+	fun getStudents(): Array<Student> {
+		val stmtStr = "SELECT discordName, userToken, studentId FROM students"
+		val stmt = connection.prepareStatement(stmtStr)
+		val rs = stmt.executeQuery()
+
+		val tokens = mutableListOf<Student>()
+
+		while (rs.next()) {
+			tokens.add(Student(
+				rs.getString("discordName"),
+				rs.getString("userToken"),
+				studentId = rs.getInt("studentId")
+			))
+		}
+
+		return tokens.toTypedArray()
+	}
 	//
 
 

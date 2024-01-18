@@ -1,7 +1,9 @@
 import data.Student
-import net.dv8tion.jda.api.Permission
+import java.awt.Color
 import java.net.URI
 import java.net.URISyntaxException
+import java.sql.SQLException
+import net.dv8tion.jda.api.Permission
 import net.dv8tion.jda.api.events.guild.GuildReadyEvent
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
 import net.dv8tion.jda.api.events.session.ReadyEvent
@@ -16,7 +18,6 @@ import util.replyUserError
 import util.sendMessageBotError
 import util.sendMessageOK
 import util.sendMessageUserError
-import java.awt.Color
 
 class CommandManager : ListenerAdapter() {
 	private val cmdList = listOf(
@@ -60,6 +61,8 @@ class CommandManager : ListenerAdapter() {
 				try {
 					// By constructing a Student-object, the data is added to the database
 				    student = Student(it.user.globalName!!, kusssUri.toURL(), studentId)
+					student.insertIntoDatabase()
+					student.assignToCourses()
                 } catch(sqlEx: Exception) {
                     println("An error occurred while creating Student: ${sqlEx.message}")
                     it.hook.sendMessageBotError("An internal error occurred!").queue()
@@ -115,7 +118,7 @@ class CommandManager : ListenerAdapter() {
 				val discordName = try {
 					val member = it.getOption("user")!!.asMember ?: throw IllegalArgumentException("Could not convert to Member")
 					member.user.globalName!!
-				} catch(ex: IllegalArgumentException, ) {
+				} catch(ex: IllegalArgumentException ) {
 					println("Could not retrieve member: ${ex.message}")
 					it.hook.sendMessageBotError("Could not retrieve mentioned user!")
 					return@Cmd
@@ -133,15 +136,35 @@ class CommandManager : ListenerAdapter() {
 				// TODO: Query database for discordName in order to get matNr.
 				val matNr = DatabaseManager.getStudentId(discordName)
 
-
-
 				if (matNr == 0) {
 					it.hook.sendMessageOK("Sorry, I was unable to find a Matrikel Number for the given user").queue()
 				} else {
 					it.hook.sendMessageOK("Here is the Matrikel Number: `$matNr`").queue()
 				}
 			},
-			OptionData(OptionType.USER, "user", "The user to get the matrikel number from", true))
+			OptionData(OptionType.USER, "user", "The user to get the matrikel number from", true)),
+
+		Cmd(
+			"reload",
+			"Reloads all calendar entries and applies changes", {
+				it.deferReply().queue()
+				val students = DatabaseManager.getStudents()
+				// Call functions which would also be called on "/kusss". These either create or update stuff
+				try {
+					if (Eugen.isManager(it.user.name)) {
+						reloadEntries(it, students)
+					} else {
+						it.replyUserError("You are not my manager!").queue()
+					}
+				} catch (sqlEx: SQLException) {
+					println("Could not retrieve member: ${sqlEx.message}")
+					it.hook.sendMessageBotError("Could not update entries!")
+					return@Cmd
+				}
+
+				it.hook.sendMessageOK("KUSSS entry for ${students.size} students").queue()
+			}
+		)
 	)
 
 	/**
@@ -261,6 +284,14 @@ class CommandManager : ListenerAdapter() {
 			println("Added user to role ${role.name}")
 		} else {
 			error("KUSSS role does not exist and could not be created")
+		}
+	}
+
+	private fun reloadEntries(it: SlashCommandInteractionEvent, students: Array<Student>) {
+		students.forEach { s ->
+			s.assignToCourses()
+			addUserToKUSSSRole(it)
+			addStudentToCourseChannels(s, it)
 		}
 	}
 }

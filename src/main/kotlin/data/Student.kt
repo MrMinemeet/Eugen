@@ -28,12 +28,11 @@ data class Student(
 				studentId = studentId
 			)
 
-	init {
+	fun insertIntoDatabase() {
 		DatabaseManager.insertStudent(this)
-		assignToCourses()
 	}
 
-	private fun assignToCourses() {
+	fun assignToCourses() {
 		for (course in courses) {
 			DatabaseManager.insertCourse(course)
 			course.assignLecturers()
