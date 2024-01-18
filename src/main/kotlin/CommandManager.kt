@@ -66,65 +66,8 @@ class CommandManager : ListenerAdapter() {
                     return@Cmd
                 }
 
-				//TODO refactor into function in Student.kt
-				var role = it.guild?.roles?.find { it.name == "KUSSS" }
-				if(role == null) {
-					val roleAction = it.guild?.createRole()
-					if (roleAction != null) {
-						roleAction.setName("KUSSS")
-						roleAction.setColor(Color.ORANGE)
-						roleAction.queue()
-						role = roleAction.complete()
-						println("Created role ${role.name}")
-					} else
-						error("Could not create role")
-				}
-
-				if (role != null) {
-					it.guild!!.addRoleToMember(it.user, role).queue()
-					println("Added user to role ${role.name}")
-				} else {
-					error("KUSSS role does not exist and could not be created")
-				}
-
-
-				//TODO refactor into function in Student.kt
-				for(course in student.courses) {
-					//look for channel
-					val channelNameDiscordFormat = course.lvaName.replace(" ", "-").lowercase()
-					var channel = it.guild?.textChannels?.find { c -> c.name.contentEquals(channelNameDiscordFormat) }
-					if(channel == null) {
-						val channelAction = it.guild?.createTextChannel(course.lvaName)
-						if (channelAction != null) {
-							//create category if it does not exist yet
-							var category = it.guild?.categories?.find { it.name == "KUSSS" }
-							if(category == null) {
-								val categoryAction = it.guild?.createCategory("KUSSS")
-								if (categoryAction != null) {
-									categoryAction.queue()
-									category = categoryAction.complete()
-									println("Created category ${category.name}")
-								} else
-									error("Could not create category")
-							}
-							channelAction.setParent(category)
-							//set channel private
-							channelAction.addPermissionOverride(it.guild!!.publicRole, emptyList(), listOf(Permission.VIEW_CHANNEL))
-							channelAction.addPermissionOverride(it.member!!, listOf(Permission.VIEW_CHANNEL, Permission.MESSAGE_SEND), emptyList())
-							channel = channelAction.complete()
-							println("Created channel ${channel.name}")
-						} else
-							error("Could not create channel")
-					}
-					//allow user to view and post in channel
-					if (channel != null) {
-						channel.manager.putPermissionOverride(it.member!!, listOf(Permission.VIEW_CHANNEL, Permission.MESSAGE_SEND), emptyList()).queue()
-						println("Assigned access to channel ${channel.name}")
-					} else {
-						error("Could not assign access to channel")
-					}
-				}
-
+				addUserToKUSSSRole(it)
+				addStudentToCourseChannels(student, it)
 				// TODO: Do more
 				// After doing stuff, "update" message (can be sent up to 15 min after initial command)
 				it.hook.sendMessageOK("You are now subscribed to the Eugen Service").queue()
@@ -256,4 +199,63 @@ class CommandManager : ListenerAdapter() {
 	 * @return The [CommandListUpdateAction] with the commands added
 	 */
 	private fun registerCommands(clua: CommandListUpdateAction) = clua.addCommands(cmdList.map { it.cmd }).queue()
+	private fun addStudentToCourseChannels(student: Student, it : SlashCommandInteractionEvent) {
+		for(course in student.courses) {
+			//look for channel
+			val channelNameDiscordFormat = course.lvaName.replace(" ", "-").lowercase()
+			var channel = it.guild?.textChannels?.find { c -> c.name.contentEquals(channelNameDiscordFormat) }
+			if(channel == null) {
+				val channelAction = it.guild?.createTextChannel(course.lvaName)
+				if (channelAction != null) {
+					//create category if it does not exist yet
+					var category = it.guild?.categories?.find { it.name == "KUSSS" }
+					if(category == null) {
+						val categoryAction = it.guild?.createCategory("KUSSS")
+						if (categoryAction != null) {
+							categoryAction.queue()
+							category = categoryAction.complete()
+							println("Created category ${category.name}")
+						} else
+							error("Could not create category")
+					}
+					channelAction.setParent(category)
+					//set channel private
+					channelAction.addPermissionOverride(it.guild!!.publicRole, emptyList(), listOf(Permission.VIEW_CHANNEL))
+					channelAction.addPermissionOverride(it.member!!, listOf(Permission.VIEW_CHANNEL, Permission.MESSAGE_SEND), emptyList())
+					channel = channelAction.complete()
+					println("Created channel ${channel.name}")
+				} else
+					error("Could not create channel")
+			}
+			//allow user to view and post in channel
+			if (channel != null) {
+				channel.manager.putPermissionOverride(it.member!!, listOf(Permission.VIEW_CHANNEL, Permission.MESSAGE_SEND), emptyList()).queue()
+				println("Assigned access to channel ${channel.name}")
+			} else {
+				error("Could not assign access to channel")
+			}
+		}
+	}
+
+	private fun addUserToKUSSSRole(it : SlashCommandInteractionEvent) {
+		var role = it.guild?.roles?.find { it.name == "KUSSS" }
+		if(role == null) {
+			val roleAction = it.guild?.createRole()
+			if (roleAction != null) {
+				roleAction.setName("KUSSS")
+				roleAction.setColor(Color.ORANGE)
+				roleAction.queue()
+				role = roleAction.complete()
+				println("Created role ${role.name}")
+			} else
+				error("Could not create role")
+		}
+
+		if (role != null) {
+			it.guild!!.addRoleToMember(it.user, role).queue()
+			println("Added user to role ${role.name}")
+		} else {
+			error("KUSSS role does not exist and could not be created")
+		}
+	}
 }
