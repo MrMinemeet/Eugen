@@ -205,7 +205,7 @@ object Kusss {
 
 	/**
 	 * Returns a [Calendar] object from a given ICS URL
-	 * @param url The ics url to parse
+	 * @param uri The ics url to parse
 	 * @return The parsed [Calendar] object
 	 */
 	private fun icsStringFromUrl(uri: URI): String = Util.readTextFromURL(uri)

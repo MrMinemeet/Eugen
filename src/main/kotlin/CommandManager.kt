@@ -32,7 +32,8 @@ class CommandManager : ListenerAdapter() {
 				}
 			}),
 
-		Cmd("kusss",
+		Cmd(
+			"kusss",
 			"Subscribe to the Eugen Service",
 			{
 				it.deferReply().queue() // Show "thinking…"
@@ -43,7 +44,7 @@ class CommandManager : ListenerAdapter() {
 						throw URISyntaxException(urlStr, "Not a KUSSS URI")
 					else
 						URI(urlStr)
-				} catch(ex: URISyntaxException) {
+				} catch (ex: URISyntaxException) {
 					println("URL could not be parsed: ${ex.message}")
 					it.hook.sendMessageUserError("Not a valid URI!").queue()
 					return@Cmd
@@ -57,17 +58,17 @@ class CommandManager : ListenerAdapter() {
 					it.hook.sendMessageUserError("Not a valid matrikel number!")
 					return@Cmd
 				}
-				val student : Student
+				val student: Student
 				try {
 					// By constructing a Student-object, the data is added to the database
-				    student = Student(it.user.globalName!!, kusssUri.toURL(), studentId)
+					student = Student(it.user.globalName!!, kusssUri.toURL(), studentId)
 					student.insertIntoDatabase()
 					student.assignToCourses()
-                } catch(sqlEx: Exception) {
-                    println("An error occurred while creating Student: ${sqlEx.message}")
-                    it.hook.sendMessageBotError("An internal error occurred!").queue()
-                    return@Cmd
-                }
+				} catch (sqlEx: Exception) {
+					println("An error occurred while creating Student: ${sqlEx.message}")
+					it.hook.sendMessageBotError("An internal error occurred!").queue()
+					return@Cmd
+				}
 
 				addUserToKUSSSRole(it)
 				addStudentToCourseChannels(student, it)
@@ -76,7 +77,8 @@ class CommandManager : ListenerAdapter() {
 				it.hook.sendMessageOK("You are now subscribed to the Eugen Service").queue()
 			},
 			OptionData(OptionType.STRING, "url", "URL to the KUSSS calendar", true),
-			OptionData(OptionType.INTEGER, "mat-nr", "Your matrikel number", false)),
+			OptionData(OptionType.INTEGER, "mat-nr", "Your matrikel number", false)
+		),
 
 		Cmd("unkusss",
 			"Unsubscribe from the Eugen Services",
@@ -87,38 +89,38 @@ class CommandManager : ListenerAdapter() {
 
 
 				//remove KUSSS role
-				val role = it.guild?.roles?.find { it.name == "KUSSS" }
-				if(role != null) {
+				val role = it.guild?.roles?.find { role -> role.name == "KUSSS" }
+				if (role != null) {
 					it.guild!!.removeRoleFromMember(it.user, role).queue()
 					println("Removed user from role ${role.name}")
 				} else {
 					error("KUSSS role does not exist")
 				}
 
-				//unassign from all text channels in category KUSSS
-				val category = it.guild?.categories?.find { it.name == "KUSSS" }
-				if (category != null) {
-					category.textChannels.forEach { channel ->
-						val permissionOverride = it.member?.let { it1 -> channel.getPermissionOverride(it1) }
-						if (permissionOverride != null) {
-							permissionOverride.manager.clear(Permission.VIEW_CHANNEL).queue()
-						}
+				// unassign from all text channels in category KUSSS
+				val category = it.guild?.categories?.find { category -> category.name == "KUSSS" }
+				category?.textChannels?.forEach { channel ->
+					val permissionOverride = it.member?.let { member ->
+						channel.getPermissionOverride(member)
 					}
+					permissionOverride?.manager?.clear(Permission.VIEW_CHANNEL)?.queue()
 				}
 
 				it.hook.sendMessageOK("You are now unsubscribed from my services").queue()
 			}),
 
-		Cmd("matnr",
+		Cmd(
+			"matnr",
 			"Returns the matrikel number for the student",
 			{
 				it.deferReply().queue()
 
 				// Get StudentID from
 				val discordName = try {
-					val member = it.getOption("user")!!.asMember ?: throw IllegalArgumentException("Could not convert to Member")
+					val member =
+						it.getOption("user")!!.asMember ?: throw IllegalArgumentException("Could not convert to Member")
 					member.user.globalName!!
-				} catch(ex: IllegalArgumentException ) {
+				} catch (ex: IllegalArgumentException) {
 					println("Could not retrieve member: ${ex.message}")
 					it.hook.sendMessageBotError("Could not retrieve mentioned user!")
 					return@Cmd
@@ -129,7 +131,8 @@ class CommandManager : ListenerAdapter() {
 				}
 
 				if (discordName == "Eugen") {
-					it.hook.sendMessageUserError("I don't have a Matrikel Number. I'm running a successful restaurant").queue()
+					it.hook.sendMessageUserError("I don't have a Matrikel Number. I'm running a successful restaurant")
+						.queue()
 					return@Cmd
 				}
 
@@ -142,7 +145,8 @@ class CommandManager : ListenerAdapter() {
 					it.hook.sendMessageOK("Here is the Matrikel Number: `$matNr`").queue()
 				}
 			},
-			OptionData(OptionType.USER, "user", "The user to get the matrikel number from", true)),
+			OptionData(OptionType.USER, "user", "The user to get the matrikel number from", true)
+		),
 
 		Cmd(
 			"reload",
@@ -227,17 +231,17 @@ class CommandManager : ListenerAdapter() {
 	 * @return The [CommandListUpdateAction] with the commands added
 	 */
 	private fun registerCommands(clua: CommandListUpdateAction) = clua.addCommands(cmdList.map { it.cmd }).queue()
-	private fun addStudentToCourseChannels(student: Student, it : SlashCommandInteractionEvent) {
-		for(course in student.courses) {
+	private fun addStudentToCourseChannels(student: Student, it: SlashCommandInteractionEvent) {
+		for (course in student.courses) {
 			//look for channel
 			val channelNameDiscordFormat = course.lvaName.replace(" ", "-").lowercase()
 			var channel = it.guild?.textChannels?.find { c -> c.name.contentEquals(channelNameDiscordFormat) }
-			if(channel == null) {
+			if (channel == null) {
 				val channelAction = it.guild?.createTextChannel(course.lvaName)
 				if (channelAction != null) {
 					//create category if it does not exist yet
 					var category = it.guild?.categories?.find { it.name == "KUSSS" }
-					if(category == null) {
+					if (category == null) {
 						val categoryAction = it.guild?.createCategory("KUSSS")
 						if (categoryAction != null) {
 							categoryAction.queue()
@@ -248,8 +252,16 @@ class CommandManager : ListenerAdapter() {
 					}
 					channelAction.setParent(category)
 					//set channel private
-					channelAction.addPermissionOverride(it.guild!!.publicRole, emptyList(), listOf(Permission.VIEW_CHANNEL))
-					channelAction.addPermissionOverride(it.member!!, listOf(Permission.VIEW_CHANNEL, Permission.MESSAGE_SEND), emptyList())
+					channelAction.addPermissionOverride(
+						it.guild!!.publicRole,
+						emptyList(),
+						listOf(Permission.VIEW_CHANNEL)
+					)
+					channelAction.addPermissionOverride(
+						it.member!!,
+						listOf(Permission.VIEW_CHANNEL, Permission.MESSAGE_SEND),
+						emptyList()
+					)
 					channel = channelAction.complete()
 					println("Created channel ${channel.name}")
 				} else
@@ -257,7 +269,11 @@ class CommandManager : ListenerAdapter() {
 			}
 			//allow user to view and post in channel
 			if (channel != null) {
-				channel.manager.putPermissionOverride(it.member!!, listOf(Permission.VIEW_CHANNEL, Permission.MESSAGE_SEND), emptyList()).queue()
+				channel.manager.putPermissionOverride(
+					it.member!!,
+					listOf(Permission.VIEW_CHANNEL, Permission.MESSAGE_SEND),
+					emptyList()
+				).queue()
 				println("Assigned access to channel ${channel.name}")
 			} else {
 				error("Could not assign access to channel")
@@ -265,9 +281,9 @@ class CommandManager : ListenerAdapter() {
 		}
 	}
 
-	private fun addUserToKUSSSRole(it : SlashCommandInteractionEvent) {
+	private fun addUserToKUSSSRole(it: SlashCommandInteractionEvent) {
 		var role = it.guild?.roles?.find { it.name == "KUSSS" }
-		if(role == null) {
+		if (role == null) {
 			val roleAction = it.guild?.createRole()
 			if (roleAction != null) {
 				roleAction.setName("KUSSS")

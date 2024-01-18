@@ -10,7 +10,8 @@ object DatabaseManager {
 
 	private const val DB_FILE_NAME = "CourseList.db"
 
-	val connection: Connection = DriverManager.getConnection("jdbc:sqlite:$DB_FILE_NAME")
+	// Don't make this public, create a function returning the desired data instead
+	private val connection: Connection = DriverManager.getConnection("jdbc:sqlite:$DB_FILE_NAME")
 
 	init {
 		createCoursesTable()

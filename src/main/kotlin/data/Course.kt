@@ -2,8 +2,6 @@ package data
 
 import DatabaseManager.assignLecturerToCourse
 import java.net.URI
-import data.LvaType
-import data.Semester
 
 /**
  * Represents a course itself

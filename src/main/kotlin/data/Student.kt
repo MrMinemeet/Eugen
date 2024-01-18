@@ -1,7 +1,9 @@
 package data
-import java.net.URL
+
+import DatabaseManager
 import Kusss
 import Util
+import java.net.URL
 
 /**
  * Represents a student
@@ -33,10 +35,10 @@ data class Student(
 	}
 
 	fun assignToCourses() {
-		for (course in courses) {
-			DatabaseManager.insertCourse(course)
-			course.assignLecturers()
-			DatabaseManager.assignStudentToCourse(this, course)
+		courses.forEach {
+			DatabaseManager.insertCourse(it)
+			it.assignLecturers()
+			DatabaseManager.assignStudentToCourse(this, it)
 		}
 	}
 }

@@ -7,4 +7,5 @@ enum class StatusEmoji (private val emojiCode: String) {
 
 	override fun toString(): String {
 		return emojiCode
-	}}
+	}
+}
