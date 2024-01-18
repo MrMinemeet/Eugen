@@ -118,10 +118,7 @@ class CommandManager : ListenerAdapter() {
 					}
 					//allow user to view and post in channel
 					if (channel != null) {
-						val permissionOverride = it.member?.let { it1 -> channel.getPermissionOverride(it1) }
-						if (permissionOverride != null) {
-							permissionOverride.manager.grant(Permission.VIEW_CHANNEL).queue()
-						}
+						channel.manager.putPermissionOverride(it.member!!, listOf(Permission.VIEW_CHANNEL, Permission.MESSAGE_SEND), emptyList()).queue()
 						println("Assigned access to channel ${channel.name}")
 					} else {
 						error("Could not assign access to channel")
@@ -163,7 +160,7 @@ class CommandManager : ListenerAdapter() {
 					}
 				}
 
-				it.hook.sendMessageOK("You are now unsubscribed from my services")
+				it.hook.sendMessageOK("You are now unsubscribed from my services").queue()
 			}),
 
 		Cmd("matnr",
