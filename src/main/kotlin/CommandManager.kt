@@ -15,6 +15,7 @@ import util.replyUserError
 import util.sendMessageBotError
 import util.sendMessageOK
 import util.sendMessageUserError
+import java.awt.Color
 
 class CommandManager : ListenerAdapter() {
 	private val cmdList = listOf(
@@ -58,8 +59,31 @@ class CommandManager : ListenerAdapter() {
 				// By constructing a Student-object, the data is added to the database
 				Student(it.user.globalName!!, kusssUri.toURL(), studentId)
 
-				// TODO: Do more
+				var role = it.guild?.roles?.find { it.name == "KUSSS" }
+				if(role == null) {
+					val roleAction = it.guild?.createRole()
+					if (roleAction != null) {
+						roleAction.setName("KUSSS")
+						roleAction.setColor(Color.ORANGE)
+						roleAction.queue()
+						role = roleAction.complete()
+						println("Created role ${role.name}")
+					} else
+						error("Could not create role")
+				}
 
+				if (role != null) {
+					it.guild!!.addRoleToMember(it.user, role).queue()
+					println("Added user to role ${role.name}")
+				} else {
+					error("KUSSS role does not exist and could not be created")
+				}
+
+
+
+
+
+				// TODO: Do more
 				// After doing stuff, "update" message (can be sent up to 15 min after initial command)
 				it.hook.sendMessageOK("You are now subscribed to the Eugen Service").queue()
 			},
