@@ -55,15 +55,17 @@ class CommandManager : ListenerAdapter() {
 					it.hook.sendMessageUserError("Not a valid matrikel number!")
 					return@Cmd
 				}
-
+				val student : Student
 				try {
 					// By constructing a Student-object, the data is added to the database
-				    Student(it.user.globalName!!, kusssUri.toURL(), studentId)
+				    student = Student(it.user.globalName!!, kusssUri.toURL(), studentId)
                 } catch(sqlEx: Exception) {
                     println("An error occurred while creating Student: ${sqlEx.message}")
                     it.hook.sendMessageBotError("An internal error occurred!").queue()
                     return@Cmd
                 }
+
+				//TODO refactor into function in Student.kt
 				var role = it.guild?.roles?.find { it.name == "KUSSS" }
 				if(role == null) {
 					val roleAction = it.guild?.createRole()
@@ -85,6 +87,32 @@ class CommandManager : ListenerAdapter() {
 				}
 
 
+				//TODO refactor into function in Student.kt
+				for(course in student.courses) {
+					//look for channel
+					var channel = it.guild?.textChannels?.find { it.name == course.lvaName }
+					if(channel == null) {
+						val channelAction = it.guild?.createTextChannel(course.lvaName)
+						if (channelAction != null) {
+							//create category if it does not exist yet
+							var category = it.guild?.categories?.find { it.name == "KUSSS" }
+							if(category == null) {
+								val categoryAction = it.guild?.createCategory("KUSSS")
+								if (categoryAction != null) {
+									categoryAction.queue()
+									category = categoryAction.complete()
+									println("Created category ${category.name}")
+								} else
+									error("Could not create category")
+							}
+							channelAction.setParent(category)
+							channelAction.queue()
+							channel = channelAction.complete()
+							println("Created channel ${channel.name}")
+						} else
+							error("Could not create channel")
+					}
+				}
 
 				// TODO: Do more
 				// After doing stuff, "update" message (can be sent up to 15 min after initial command)
