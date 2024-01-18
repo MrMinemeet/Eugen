@@ -4,6 +4,9 @@ import java.net.URI
 import java.net.URISyntaxException
 import java.sql.SQLException
 import net.dv8tion.jda.api.Permission
+import net.dv8tion.jda.api.entities.Guild
+import net.dv8tion.jda.api.entities.channel.concrete.Category
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel
 import net.dv8tion.jda.api.events.guild.GuildReadyEvent
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
 import net.dv8tion.jda.api.events.session.ReadyEvent
@@ -19,7 +22,11 @@ import util.sendMessageBotError
 import util.sendMessageOK
 import util.sendMessageUserError
 
+const val CATEGORY_NAME: String = "KUSSS"
+
 class CommandManager : ListenerAdapter() {
+
+
 	private val cmdList = listOf(
 		Cmd("sleep",
 			"Brings Eugen to a peaceful sleep.",
@@ -58,20 +65,28 @@ class CommandManager : ListenerAdapter() {
 					it.hook.sendMessageUserError("Not a valid matrikel number!")
 					return@Cmd
 				}
-				val student: Student
-				try {
+				val student = try {
 					// By constructing a Student-object, the data is added to the database
-					student = Student(it.user.globalName!!, kusssUri.toURL(), studentId)
-					student.insertIntoDatabase()
-					student.assignToCourses()
+					val std = Student(it.user.globalName!!, it.guild!!.idLong, kusssUri.toURL(), studentId)
+					std.insertIntoDatabase()
+					std.assignToCourses()
+
+					std
 				} catch (sqlEx: Exception) {
 					println("An error occurred while creating Student: ${sqlEx.message}")
-					it.hook.sendMessageBotError("An internal error occurred!").queue()
+					it.hook.sendMessageBotError("An internal error occurred while creating the database entry!").queue()
 					return@Cmd
 				}
 
-				addUserToKUSSSRole(it)
-				addStudentToCourseChannels(student, it)
+				try {
+					addUserToKusssRole(student)
+					addStudentToCourseChannels(student)
+				} catch(ex: IllegalStateException) {
+					println("An error occurred while adding user to KUSSS role: ${ex.message}")
+					it.hook.sendMessageBotError("An internal error occurred while adding the user to the KUSSS role or while adding to the channels!").queue()
+					return@Cmd
+				}
+
 				// TODO: Do more
 				// After doing stuff, "update" message (can be sent up to 15 min after initial command)
 				it.hook.sendMessageOK("You are now subscribed to the Eugen Service").queue()
@@ -156,7 +171,7 @@ class CommandManager : ListenerAdapter() {
 				// Call functions which would also be called on "/kusss". These either create or update stuff
 				try {
 					if (Eugen.isManager(it.user.name)) {
-						reloadEntries(it, students)
+						reloadEntries(students)
 					} else {
 						it.replyUserError("You are not my manager!").queue()
 					}
@@ -231,83 +246,120 @@ class CommandManager : ListenerAdapter() {
 	 * @return The [CommandListUpdateAction] with the commands added
 	 */
 	private fun registerCommands(clua: CommandListUpdateAction) = clua.addCommands(cmdList.map { it.cmd }).queue()
-	private fun addStudentToCourseChannels(student: Student, it: SlashCommandInteractionEvent) {
-		for (course in student.courses) {
-			//look for channel
-			val channelNameDiscordFormat = course.lvaName.replace(" ", "-").lowercase()
-			var channel = it.guild?.textChannels?.find { c -> c.name.contentEquals(channelNameDiscordFormat) }
-			if (channel == null) {
-				val channelAction = it.guild?.createTextChannel(course.lvaName)
-				if (channelAction != null) {
-					//create category if it does not exist yet
-					var category = it.guild?.categories?.find { it.name == "KUSSS" }
-					if (category == null) {
-						val categoryAction = it.guild?.createCategory("KUSSS")
-						if (categoryAction != null) {
-							categoryAction.queue()
-							category = categoryAction.complete()
-							println("Created category ${category.name}")
-						} else
-							error("Could not create category")
-					}
-					channelAction.setParent(category)
-					//set channel private
-					channelAction.addPermissionOverride(
-						it.guild!!.publicRole,
-						emptyList(),
-						listOf(Permission.VIEW_CHANNEL)
-					)
-					channelAction.addPermissionOverride(
-						it.member!!,
-						listOf(Permission.VIEW_CHANNEL, Permission.MESSAGE_SEND),
-						emptyList()
-					)
-					channel = channelAction.complete()
-					println("Created channel ${channel.name}")
-				} else
-					error("Could not create channel")
-			}
-			//allow user to view and post in channel
-			if (channel != null) {
-				channel.manager.putPermissionOverride(
-					it.member!!,
-					listOf(Permission.VIEW_CHANNEL, Permission.MESSAGE_SEND),
-					emptyList()
-				).queue()
-				println("Assigned access to channel ${channel.name}")
-			} else {
-				error("Could not assign access to channel")
-			}
+
+	/**
+	 * Adds the user to the course channels.
+	 * Creates the channels if they do not exist yet
+	 * @param student The student to add to the channels
+	 * @throws IllegalStateException If the guild or channel does not exist
+	 */
+	private fun addStudentToCourseChannels(student: Student) {
+		// Get the guild the user has subscribed on
+		val guild = Eugen.client.getGuildById(student.guildId)
+			?: throw IllegalStateException("Could not find guild by ID ${student.guildId}")
+
+		val guildMember = guild.getMembersByName(student.discordName, true).firstOrNull()
+			?: throw IllegalStateException("Could not find user with name '${student.discordName}'")
+
+		for(course in student.courses){
+			val channelName = course.lvaName.replace(" ", "-").lowercase()
+			val channel = guild.textChannels
+				.find { it.name.contentEquals(channelName) }
+				?: createCourseChannel(guild, channelName)
+
+			// Add user to channel
+			channel.manager.putPermissionOverride(
+				guildMember,
+				listOf(Permission.VIEW_CHANNEL, Permission.MESSAGE_SEND),
+				emptyList()
+			).queue()
+			println("Assigned ${student.discordName} to channel ${channel.name}")
 		}
+
+		println("All channels for ${student.discordName} assigned!")
 	}
 
-	private fun addUserToKUSSSRole(it: SlashCommandInteractionEvent) {
-		var role = it.guild?.roles?.find { it.name == "KUSSS" }
+	/**
+	 * Creates a new course channel for a given guild
+	 * @param guild The guild to create the channel on
+	 * @param name The name of the channel
+	 */
+	private fun createCourseChannel(guild: Guild, name: String): TextChannel {
+		val channelAction = guild.createTextChannel(name)
+		val category = guild.categories
+			.find { it.name == CATEGORY_NAME }
+			?: createCategory(guild, CATEGORY_NAME)
+		channelAction.setParent(category)
+		channelAction.addPermissionOverride(
+			guild.publicRole,
+			emptyList(),
+			listOf(Permission.VIEW_CHANNEL)
+		)
+		//set channel private
+		channelAction.addPermissionOverride(
+			guild.publicRole,
+			emptyList(),
+			listOf(Permission.VIEW_CHANNEL)
+		)
+
+		val channel = channelAction.complete()
+		println("Created channel ${channel.name}")
+		return channel
+	}
+
+	/**
+	 * Creates a new category for a given guild
+	 * @param guild The guild to create the category on
+	 * @param name The name of the category
+	 * @return The created category
+	 */
+	private fun createCategory(guild: Guild, name: String): Category {
+		val categoryAction = guild.createCategory(name)
+		val category = categoryAction.complete()
+		println("Created category $name on ${guild.name}")
+		return category
+	}
+
+	/***
+	 * Adds the user to the KUSSS role
+	 * @param student The student to add to the role
+	 * @throws IllegalStateException If the guild or role does not exist
+	 */
+	private fun addUserToKusssRole(student: Student) {
+		// Get the guild the user has subscribed on
+		val guild = Eugen.client
+			.getGuildById(student.guildId)
+			?: throw IllegalStateException("Could not find guild by ID ${student.guildId}")
+
+		// Check and create KUSSS role if not existing
+		var role = guild.roles.find { it.name == CATEGORY_NAME }
 		if (role == null) {
-			val roleAction = it.guild?.createRole()
-			if (roleAction != null) {
-				roleAction.setName("KUSSS")
-				roleAction.setColor(Color.ORANGE)
-				roleAction.queue()
-				role = roleAction.complete()
-				println("Created role ${role.name}")
-			} else
-				error("Could not create role")
+			println("Creating KUSSS role on ${guild.name}")
+			val roleAction = guild.createRole()
+			roleAction.setName(CATEGORY_NAME)
+			roleAction.setColor(Color.ORANGE)
+			roleAction.queue()
+			role = roleAction.complete()
 		}
 
-		if (role != null) {
-			it.guild!!.addRoleToMember(it.user, role).queue()
-			println("Added user to role ${role.name}")
-		} else {
-			error("KUSSS role does not exist and could not be created")
+		if (role == null) {
+			throw IllegalStateException("KUSSS role does not exist on ${guild.name} and could not be created!")
 		}
+		val user = Eugen.client
+			.getUsersByName(student.discordName, true).firstOrNull()
+			?: throw IllegalStateException("Could not find user with name '${student.discordName}'")
+
+		guild.addRoleToMember(user, role).queue()
+		println("${student.discordName} added to role ${role.name} on ${guild.name}")
+
 	}
 
-	private fun reloadEntries(it: SlashCommandInteractionEvent, students: Array<Student>) {
-		students.forEach { s ->
-			s.assignToCourses()
-			addUserToKUSSSRole(it)
-			addStudentToCourseChannels(s, it)
+
+	private fun reloadEntries(students: Array<Student>) {
+		students.forEach {
+			it.assignToCourses()
+			addUserToKusssRole(it)
+			addStudentToCourseChannels(it)
 		}
 	}
 }

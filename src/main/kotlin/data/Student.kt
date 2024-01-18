@@ -15,6 +15,7 @@ import java.net.URL
 data class Student(
 	val discordName: String,
 	val userToken: String,
+	val guildId: Long,
 	val courses: List<Course> = Kusss.getCourses(userToken),
 	val studentId: Int = -1,
 ) {
@@ -23,10 +24,11 @@ data class Student(
 	 * @param discordName The discord name of the student
 	 * @param calendarURL The calendar url of the student
 	 */
-	constructor(discordName: String, calendarURL: URL, studentId: Int = -1) :
+	constructor(discordName: String, guildId: Long, calendarURL: URL, studentId: Int = -1) :
 			this(
 				discordName,
 				Util.tokenFromURL(calendarURL).orElse(""),
+				guildId,
 				studentId = studentId
 			)
 

@@ -41,7 +41,7 @@ object DatabaseManager {
 	private fun createStudentTable() {
 		val statement = connection.createStatement()
 		val stmtStr =  """
-			CREATE TABLE IF NOT EXISTS students (discordName varchar(50) PRIMARY KEY, 
+			CREATE TABLE IF NOT EXISTS students (discordName varchar(50) PRIMARY KEY, guildId BIGINT,
 			userToken varchar(100), studentId integer)
 		""".trimIndent()
 		statement.execute(stmtStr)
@@ -88,21 +88,25 @@ object DatabaseManager {
 
 	fun insertStudent(student : Student, debugOutput: Boolean = false) {
 		val stmtStr = """
-			INSERT INTO students(discordName, userToken, studentId) VALUES(?,?,?) 
+			INSERT INTO students(discordName, guildId, userToken, studentId) VALUES(?,?,?,?) 
 			ON CONFLICT(discordName) 
-			DO UPDATE SET userToken=excluded.userToken, studentId=excluded.studentId;
+			DO UPDATE SET guildId=excluded.guildId, userToken=excluded.userToken, studentId=excluded.studentId;
 		""".trimIndent()
 
-		val discordName : String = student.discordName
+		val discordName: String = student.discordName
 		if (debugOutput) println(discordName)
 
-		val userToken : String = student.userToken
+		val guildId: Long = student.guildId
+		if (debugOutput) println(guildId)
+
+		val userToken: String = student.userToken
 		if (debugOutput) println(userToken)
 
 		val stmt = connection.prepareStatement(stmtStr)
 		stmt.setString(1, discordName)
-		stmt.setString(2, userToken)
-		stmt.setInt(3, student.studentId)
+		stmt.setLong(2, guildId)
+		stmt.setString(3, userToken)
+		stmt.setInt(4, student.studentId)
 		stmt.execute()
 
 		println("Inserted $discordName")
@@ -143,7 +147,7 @@ object DatabaseManager {
 	}
 
 	fun getStudents(): Array<Student> {
-		val stmtStr = "SELECT discordName, userToken, studentId FROM students"
+		val stmtStr = "SELECT * FROM students"
 		val stmt = connection.prepareStatement(stmtStr)
 		val rs = stmt.executeQuery()
 
@@ -153,6 +157,7 @@ object DatabaseManager {
 			tokens.add(Student(
 				rs.getString("discordName"),
 				rs.getString("userToken"),
+				rs.getLong("guildId"),
 				studentId = rs.getInt("studentId")
 			))
 		}
