@@ -1,5 +1,5 @@
 fun main() {
-    createTables()
+    val dbConn = DatabaseManager.connection
 
     Eugen.client.addEventListener(CommandManager())
 }

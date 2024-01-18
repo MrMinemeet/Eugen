@@ -56,9 +56,15 @@ class CommandManager : ListenerAdapter() {
 					return@Cmd
 				}
 
-				// By constructing a Student-object, the data is added to the database
-				Student(it.user.globalName!!, kusssUri.toURL(), studentId)
-
+				try {
+					// By constructing a Student-object, the data is added to the database
+					Student(it.user.globalName!!, kusssUri.toURL(), studentId)
+				    Student(it.user.globalName!!, kusssUri.toURL(), studentId)
+                } catch(sqlEx: Exception) {
+                    println("An error occurred while creating Student: ${sqlEx.message}")
+                    it.hook.sendMessageBotError("An internal error occurred!").queue()
+                    return@Cmd
+                }
 				var role = it.guild?.roles?.find { it.name == "KUSSS" }
 				if(role == null) {
 					val roleAction = it.guild?.createRole()
