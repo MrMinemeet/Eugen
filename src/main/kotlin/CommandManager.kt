@@ -21,6 +21,8 @@ import util.replyUserError
 import util.sendMessageBotError
 import util.sendMessageOK
 import util.sendMessageUserError
+import kotlin.concurrent.thread
+import kotlin.time.Duration.Companion.days
 
 const val CATEGORY_NAME: String = "KUSSS"
 
@@ -227,6 +229,16 @@ class CommandManager : ListenerAdapter() {
 		super.onReady(event)
 		if (!Eugen.devMode)
 			registerCommands(Eugen.client.updateCommands())
+
+		// Run separate thread that reloads all data every X time interval
+		thread {
+			while (true) {
+				println("Reloading all students' information")
+				reloadEntries(DatabaseManager.getStudents())
+				// Run once a day
+				Thread.sleep(1.days.inWholeMilliseconds)
+			}
+		}
 	}
 
 	inner class Cmd(
@@ -320,7 +332,7 @@ class CommandManager : ListenerAdapter() {
 		return category
 	}
 
-	/***
+	/**
 	 * Adds the user to the KUSSS role
 	 * @param student The student to add to the role
 	 * @throws IllegalStateException If the guild or role does not exist
@@ -351,10 +363,12 @@ class CommandManager : ListenerAdapter() {
 
 		guild.addRoleToMember(user, role).queue()
 		println("${student.discordName} added to role ${role.name} on ${guild.name}")
-
 	}
 
-
+	/**
+	 * Reloads all entries from the database and applies changes
+	 * @param students The students to reload
+	 */
 	private fun reloadEntries(students: Array<Student>) {
 		students.forEach {
 			it.assignToCourses()
