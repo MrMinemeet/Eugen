@@ -110,6 +110,7 @@ class CommandManager : ListenerAdapter() {
 							channelAction.setParent(category)
 							//set channel private
 							channelAction.addPermissionOverride(it.guild!!.publicRole, emptyList(), listOf(Permission.VIEW_CHANNEL))
+							channelAction.addPermissionOverride(it.member!!, listOf(Permission.VIEW_CHANNEL, Permission.MESSAGE_SEND), emptyList())
 							channel = channelAction.complete()
 							println("Created channel ${channel.name}")
 						} else
@@ -117,11 +118,9 @@ class CommandManager : ListenerAdapter() {
 					}
 					//allow user to view and post in channel
 					if (channel != null) {
-						channel.memberPermissionOverrides.forEach { permissionOverride ->
-							if (permissionOverride.member == it.member) {
-								permissionOverride.manager.grant(Permission.VIEW_CHANNEL).queue()
-								permissionOverride.manager.grant(Permission.MESSAGE_SEND).queue()
-							}
+						val permissionOverride = it.member?.let { it1 -> channel.getPermissionOverride(it1) }
+						if (permissionOverride != null) {
+							permissionOverride.manager.grant(Permission.VIEW_CHANNEL).queue()
 						}
 						println("Assigned access to channel ${channel.name}")
 					} else {
@@ -142,6 +141,7 @@ class CommandManager : ListenerAdapter() {
 				it.deferReply().queue() // Show "thinking…"
 
 				// TODO: Delete user-specific data
+
 
 				//remove KUSSS role
 				val role = it.guild?.roles?.find { it.name == "KUSSS" }
