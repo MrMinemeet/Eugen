@@ -114,10 +114,14 @@ class CommandManager : ListenerAdapter() {
 				// Get StudentID from
 				val discordName = try {
 					val member = it.getOption("user")!!.asMember ?: throw IllegalArgumentException("Could not convert to Member")
-					member.user.name
-				} catch(ex: IllegalArgumentException) {
+					member.user.globalName!!
+				} catch(ex: IllegalArgumentException, ) {
 					println("Could not retrieve member: ${ex.message}")
 					it.hook.sendMessageBotError("Could not retrieve mentioned user!")
+					return@Cmd
+				} catch (ex: NullPointerException) {
+					println("Could not retrieve username: ${ex.message}")
+					it.hook.sendMessageBotError("An internal error occurred!")
 					return@Cmd
 				}
 
@@ -127,13 +131,14 @@ class CommandManager : ListenerAdapter() {
 				}
 
 				// TODO: Query database for discordName in order to get matNr.
-				val matNr = -1
+				val matNr = DatabaseManager.getStudentId(discordName)
 
 
-				if (matNr == -1) {
+
+				if (matNr == 0) {
 					it.hook.sendMessageOK("Sorry, I was unable to find a Matrikel Number for the given user").queue()
 				} else {
-					it.hook.sendMessageOK("Here is the Matrikel Number: `$matNr`")
+					it.hook.sendMessageOK("Here is the Matrikel Number: `$matNr`").queue()
 				}
 			},
 			OptionData(OptionType.USER, "user", "The user to get the matrikel number from", true))

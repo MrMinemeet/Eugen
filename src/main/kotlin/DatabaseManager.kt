@@ -133,6 +133,14 @@ object DatabaseManager {
 		stmt.execute()
 	}
 
+	fun getStudentId(discordName : String) : Int {
+		val stmtStr = "SELECT studentId FROM students WHERE discordName = ?"
+		val stmt = connection.prepareStatement(stmtStr)
+		stmt.setString(1, discordName)
+		val rs = stmt.executeQuery()
+		return rs.getInt("studentId")
+	}
+
 	//
 
 
