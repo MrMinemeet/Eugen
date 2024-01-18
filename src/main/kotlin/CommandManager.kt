@@ -58,7 +58,6 @@ class CommandManager : ListenerAdapter() {
 
 				try {
 					// By constructing a Student-object, the data is added to the database
-					Student(it.user.globalName!!, kusssUri.toURL(), studentId)
 				    Student(it.user.globalName!!, kusssUri.toURL(), studentId)
                 } catch(sqlEx: Exception) {
                     println("An error occurred while creating Student: ${sqlEx.message}")
@@ -84,8 +83,6 @@ class CommandManager : ListenerAdapter() {
 				} else {
 					error("KUSSS role does not exist and could not be created")
 				}
-
-
 
 
 
