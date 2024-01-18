@@ -1,4 +1,5 @@
 import data.Student
+import net.dv8tion.jda.api.Permission
 import java.net.URI
 import java.net.URISyntaxException
 import net.dv8tion.jda.api.events.guild.GuildReadyEvent
@@ -112,6 +113,18 @@ class CommandManager : ListenerAdapter() {
 						} else
 							error("Could not create channel")
 					}
+					//allow user to view and post in channel
+					if (channel != null) {
+						channel.memberPermissionOverrides.forEach { permissionOverride ->
+							if (permissionOverride.member == it.member) {
+								permissionOverride.manager.grant(Permission.VIEW_CHANNEL).queue()
+								permissionOverride.manager.grant(Permission.MESSAGE_SEND).queue()
+							}
+						}
+						println("Assigned access to channel ${channel.name}")
+					} else {
+						error("Could not assign access to channel")
+					}
 				}
 
 				// TODO: Do more
@@ -127,6 +140,26 @@ class CommandManager : ListenerAdapter() {
 				it.deferReply().queue() // Show "thinking…"
 
 				// TODO: Delete user-specific data
+
+				//remove KUSSS role
+				val role = it.guild?.roles?.find { it.name == "KUSSS" }
+				if(role != null) {
+					it.guild!!.removeRoleFromMember(it.user, role).queue()
+					println("Removed user from role ${role.name}")
+				} else {
+					error("KUSSS role does not exist")
+				}
+
+				//unassign from all text channels in category KUSSS
+				val category = it.guild?.categories?.find { it.name == "KUSSS" }
+				if (category != null) {
+					category.textChannels.forEach { channel ->
+						val permissionOverride = it.member?.let { it1 -> channel.getPermissionOverride(it1) }
+						if (permissionOverride != null) {
+							permissionOverride.manager.clear(Permission.VIEW_CHANNEL).queue()
+						}
+					}
+				}
 
 				it.hook.sendMessageOK("You are now unsubscribed from my services")
 			}),
