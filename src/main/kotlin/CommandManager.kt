@@ -91,7 +91,8 @@ class CommandManager : ListenerAdapter() {
 				//TODO refactor into function in Student.kt
 				for(course in student.courses) {
 					//look for channel
-					var channel = it.guild?.textChannels?.find { it.name == course.lvaName }
+					val channelNameDiscordFormat = course.lvaName.replace(" ", "-").lowercase()
+					var channel = it.guild?.textChannels?.find { c -> c.name.contentEquals(channelNameDiscordFormat) }
 					if(channel == null) {
 						val channelAction = it.guild?.createTextChannel(course.lvaName)
 						if (channelAction != null) {
@@ -107,7 +108,8 @@ class CommandManager : ListenerAdapter() {
 									error("Could not create category")
 							}
 							channelAction.setParent(category)
-							channelAction.queue()
+							//set channel private
+							channelAction.addPermissionOverride(it.guild!!.publicRole, emptyList(), listOf(Permission.VIEW_CHANNEL))
 							channel = channelAction.complete()
 							println("Created channel ${channel.name}")
 						} else
