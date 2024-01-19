@@ -1,4 +1,9 @@
+import data.Course
+import data.LvaType
+import data.Semester
+import data.Session
 import java.io.StringReader
+import java.net.URI
 import java.time.LocalDateTime
 import java.time.Month
 import java.time.format.DateTimeFormatter
@@ -7,11 +12,6 @@ import net.fortuna.ical4j.model.Calendar
 import net.fortuna.ical4j.model.Component
 import net.fortuna.ical4j.model.Property
 import net.fortuna.ical4j.model.component.CalendarComponent
-import data.Course
-import data.LvaType
-import data.Semester
-import data.Session
-import java.net.URI
 import org.jsoup.Jsoup
 
 object Kusss {
@@ -220,11 +220,25 @@ object Kusss {
 	private fun getLvaKusssInfo(semester: Semester, lvaNr: String, curLvaName: String): Pair<String, URI> {
 		// If semester != current semester, then just return the current LVA Name.
 		// The request only gets the current semester, and the required semester can't be passed via GET
-		if (semester != getCurrentSemester())
-			return Pair(curLvaName, getUnknownCourseURL(lvaNr))
+		if (semester != getCurrentSemester()) {
+			// Remove any unnecessary LVA Type prefix from name.
+			// Only needed when the course is not in the current semester
+			return Pair(removeLvaTypeFromName(curLvaName), getUnknownCourseURL(lvaNr))
+		}
 
 		// Get course with matching lvaNr
 		return allLVAs.getOrDefault(lvaNr, Pair(curLvaName, getUnknownCourseURL(lvaNr)))
+	}
+
+	/**
+	 * Removes the LvaType from the name of a course.
+	 * E.g., "VL Softwareentwicklung 1" -> "Softwareentwicklung 1"
+	 * @param originalName The original name of the course
+	 * @return The name of the course without the LvaType
+	 */
+	private fun removeLvaTypeFromName(originalName: String): String {
+		LvaType.entries.any { originalName.startsWith(it.name) }
+			.let { return if (it) originalName.substringAfter(' ') else originalName }
 	}
 
 	private fun getUnknownCourseURL(lvaNr: String): URI {
