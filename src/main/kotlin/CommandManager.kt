@@ -302,11 +302,11 @@ class CommandManager : ListenerAdapter() {
 		val guildMember = guild.getMembersByName(student.discordName, true).firstOrNull()
 			?: throw IllegalStateException("Could not find user with name '${student.discordName}'")
 
-		for(course in student.courses){
+		for(course in student.courses) {
 			val channelName = course.lvaName.replace(" ", "-").lowercase()
 			val channel = guild.textChannels
 				.find { it.name.contentEquals(channelName) }
-				?: createCourseChannel(guild, channelName)
+				?: createCourseChannel(guild, channelName, course.uri.toString())
 
 			// Add user to channel
 			channel.manager.putPermissionOverride(
@@ -326,12 +326,15 @@ class CommandManager : ListenerAdapter() {
 	 * @param guild The guild to create the channel on
 	 * @param name The name of the channel
 	 */
-	private fun createCourseChannel(guild: Guild, name: String): TextChannel {
+	private fun createCourseChannel(guild: Guild, name: String, topic: String = ""): TextChannel {
 		val channelAction = guild.createTextChannel(name)
 		val category = guild.categories
 			.find { it.name == CATEGORY_NAME }
 			?: createCategory(guild, CATEGORY_NAME)
 		channelAction.setParent(category)
+
+		channelAction.setTopic("Links: [KUSSS]($topic)") // TODO: Add exam date
+
 		channelAction.addPermissionOverride(
 			guild.publicRole,
 			emptyList(),
