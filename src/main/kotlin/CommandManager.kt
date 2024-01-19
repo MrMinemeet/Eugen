@@ -147,7 +147,7 @@ class CommandManager : ListenerAdapter() {
 					return@Cmd
 				}
 
-				if (discordName == "Eugen") {
+				if (discordName == Eugen.client.selfUser.name) {
 					it.hook.sendMessageUserError("I don't have a Matrikel Number. I'm running a successful restaurant")
 						.queue()
 					return@Cmd
