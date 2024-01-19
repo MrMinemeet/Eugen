@@ -283,11 +283,10 @@ class CommandManager : ListenerAdapter() {
 				guildMember,
 				listOf(Permission.VIEW_CHANNEL, Permission.MESSAGE_SEND),
 				emptyList()
-			).queue()
-			println("Assigned ${student.discordName} to channel ${channel.name}")
+			).queue().let {	println("Assigned ${student.discordName} to channel ${channel.name}") }
 		}
 
-		println("All channels for ${student.discordName} assigned!")
+		println("All channels for ${student.discordName} queued!")
 	}
 
 	/**
