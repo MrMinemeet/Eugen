@@ -5,7 +5,6 @@ import data.Session
 import java.io.StringReader
 import java.net.URI
 import java.time.LocalDateTime
-import java.time.Month
 import java.time.format.DateTimeFormatter
 import net.fortuna.ical4j.data.CalendarBuilder
 import net.fortuna.ical4j.model.Calendar
@@ -95,11 +94,13 @@ object Kusss {
 	 * @return A list of all [Course]s for the given URL
 
 	 */
-	fun getCourses(uri: URI, calendar: Calendar? = null): List<Course> {
+	private fun getCourses(uri: URI, calendar: Calendar? = null): List<Course> {
+		val currentSemester = Semester.current()
 		return (calendar ?: calendarFromKUSSS(uri)) // Use passed calendar if possible
 			.getComponents<CalendarComponent>()
 			.filter { it.name.equals(Component.VEVENT) } // Filter out any other entries that are not a EVENT
 			.map { calendarComponentToCourse(it.getProperties()) }
+			.filter { it.semester == currentSemester } // Filter out courses that are not in the current semester
 			.distinct()
 	}
 
@@ -176,7 +177,7 @@ object Kusss {
 		val lvaNr = summary[2 + offset].trim().trim('(')
 		val semester = if (summary[3 + offset].contains("W")) Semester.WINTER else Semester.SUMMER
 
-		val (lvaName, uri) = getLvaKusssInfo(semester, lvaNr, summary[0 + offset].trim())
+		val (lvaName, uri) = getLvaKusssInfo(lvaNr, summary[0 + offset].trim())
 
 		// Fetch actual data and return Course object
 		return Course(
@@ -212,22 +213,49 @@ object Kusss {
 
 	/**
 	 * Fetches the name and description URL from KUSSS
-	 * @param semester The semester of the course
 	 * @param lvaNr The LVA Nr of the course
 	 * @param curLvaName The current LVA Name of the course
 	 * @return A Pair of the name and description URL
 	 */
-	private fun getLvaKusssInfo(semester: Semester, lvaNr: String, curLvaName: String): Pair<String, URI> {
-		// If semester != current semester, then just return the current LVA Name.
-		// The request only gets the current semester, and the required semester can't be passed via GET
-		if (semester != getCurrentSemester()) {
-			// Remove any unnecessary LVA Type prefix from name.
-			// Only needed when the course is not in the current semester
-			return Pair(removeLvaTypeFromName(curLvaName), getUnknownCourseURL(lvaNr))
+	private fun getLvaKusssInfo(lvaNr: String, curLvaName: String): Pair<String, URI> {
+		// Get course with matching lvaNr
+		val (name, uri) = allLVAs[lvaNr] ?: return Pair(curLvaName, getUnknownCourseURL(lvaNr))
+
+		if (!name.lowercase().contains("special topic")) {
+			// Not a special topic, no further processing to do
+			return Pair(name, uri)
 		}
 
-		// Get course with matching lvaNr
-		return allLVAs.getOrDefault(lvaNr, Pair(curLvaName, getUnknownCourseURL(lvaNr)))
+		// Get actual name from uri
+		val courseTable = Jsoup.parse(Util.readTextFromURL(uri))
+			.select("table")
+			// Select all tables of class "borderbold"
+			.select("table.borderbold")
+			// Select table that contains an element with the lvaNr. The LvaNr is the text in an "a" href
+			.find {
+				it.select("a")
+					.any { a ->
+						a.text()
+							.replace(".", "")
+							.contains(lvaNr)
+					}
+			} ?: return Pair(name, uri)
+
+		// Get all rows of table
+		val courseTableRows = courseTable
+			// Select inner tbody
+			.select("tbody")[1]
+			// Select "tr" with class "priorityhighlighted", as the desired row is highlighted by KUSSS when querying with the courseclassID (provided from URI)
+			.select("tr.priorityhighlighted")
+			.drop(1) // Drop the "tr" with the course number
+
+		if(courseTableRows.isEmpty()) return Pair(name, uri)
+
+		// Get the text of the first td
+		val courseName = courseTableRows[0].select("td")[0].text()
+			.substringAfter("Untertitel:").substringBefore("Zusatzinfo:").trim()
+
+		return Pair(courseName, uri)
 	}
 
 	/**
@@ -243,19 +271,5 @@ object Kusss {
 
 	private fun getUnknownCourseURL(lvaNr: String): URI {
 		return URI("https://kusss.jku.at/kusss/coursecatalogue-searchlvareg.action?lvasearch=$lvaNr")
-	}
-
-	/**
-	 * Returns the current semester
-	 */
-	private fun getCurrentSemester(): Semester {
-		// Get current date
-		val curDateTime = LocalDateTime.now()
-
-		// Check if month is in [Feb;July]
-		return if (curDateTime.monthValue in Month.FEBRUARY.value..Month.JULY.value)
-			Semester.SUMMER
-		else
-			Semester.WINTER
 	}
 }
