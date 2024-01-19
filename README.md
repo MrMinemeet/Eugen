@@ -19,7 +19,27 @@ Unsubscribes the user from the Eugen Service. Furthermore, any user-specific dat
 ## /reload :safety_vest:
 Reloads the data from the calendar file. This action is also performed automatically every 24 hours.
 
+# Additional features
+Compared to [Kilian](https://github.com/rechen-werk/Kilian).
+* `/reload` command to manually reload the calendar file and automatic reload every 24h.
+* Created channels under the `KUSSS` category are sorted by their name in ascending order.
 
 
-# Requirements
-TODO
+
+# How to get a working discord bot
+## Requirements
+The bot delivers all major dependencies in the form of a fat jar. The only requirement is a JRE.
+
+## Create a bot account
+1. Create a new bot by following [THIS](https://discordpy.readthedocs.io/en/stable/discord.html) guide. Please store your token in a safe place, as you will need it later.
+2. Set all boxes in "Privileged Gateway Intents" ("Bot" page) to "on".
+3. Use the URL Generator to create an invitation link for the bot.
+   * Check `bot` and `applications.commands` under "Scopes"
+   * Check `Administrator` under "Bot Permissions" (this is the easiest way. You can also set the permissions manually but this is not covered here)
+4. Use the link at the bottom of the page to invite the bot to your server.
+
+## Get the bot running
+1. Download the latest release from [HERE](https://github.com/mrminemeet/releases).
+2. Extract the archive.
+3. Create a file called `managers.txt` and add your unique discord username (the name that replaced the `name#number`) to it.
+4. Set the previously received token as the environment variable `EUGEN_BOT_TOKEN` and start the bot. If everything went well, you should see Eugen being online in your server.
