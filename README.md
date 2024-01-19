@@ -22,11 +22,11 @@ Reloads the data from the calendar file. This action is also performed automatic
 ## /delete-kusss :safety_vest:
 Deletes the KUSSS category and all it's channels. **:rotating_light: This action is irreversible.**
 
-# Additional features
-Compared to [Kilian](https://github.com/rechen-werk/Kilian).
+# Differences to Kilian
 * `/reload` command to manually reload the calendar file and automatic reload every 24h.
 * Created channels under the `KUSSS` category are sorted by their name in ascending order.
-
+* Places KUSSS url into the channel topic. (TODO: Add exam info)
+* No explicit `/ping` command in order to mention specific users. The roles are channel based and therefore a normal `@everyone` or `@here` inside the channel is sufficient.
 
 
 # How to get a working discord bot
