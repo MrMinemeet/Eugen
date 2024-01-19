@@ -19,6 +19,7 @@ import util.replyBotError
 import util.replyOK
 import util.replyUserError
 import util.sendMessageBotError
+import util.sendMessageInfo
 import util.sendMessageOK
 import util.sendMessageUserError
 import kotlin.concurrent.thread
@@ -184,6 +185,35 @@ class CommandManager : ListenerAdapter() {
 				}
 
 				it.hook.sendMessageOK("KUSSS entry for ${students.size} students").queue()
+			}
+		),
+
+		Cmd("delete-kusss",
+			"Removes all LVA channels and the $CATEGORY_NAME",
+			{
+				if (!Eugen.isManager(it.user.name)) {
+					it.replyUserError("You are not my manager!").queue()
+					return@Cmd
+				}
+
+				it.deferReply().queue()
+				val category  = it.guild!!.categories.find { category -> category.name == CATEGORY_NAME }
+				if (category == null) {
+					// Does not exist
+					println("Category $CATEGORY_NAME does not exist")
+					it.hook.sendMessageInfo("Category $CATEGORY_NAME does not exist").queue()
+					return@Cmd
+				}
+
+				// Remove all channels in category
+				category.textChannels.forEach { channel ->
+					channel.delete().queue().let { println("Deleted channel ${channel.name}") }
+				}
+
+				// Remove category
+				category.delete().complete()
+				println("Deleted category ${category.name}")
+				it.hook.sendMessageOK("Deleted category ${category.name} and it's channels").queue()
 			}
 		)
 	)

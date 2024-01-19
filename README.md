@@ -19,6 +19,9 @@ Unsubscribes the user from the Eugen Service. Furthermore, any user-specific dat
 ## /reload :safety_vest:
 Reloads the data from the calendar file. This action is also performed automatically every 24 hours.
 
+## /delete-kusss :safety_vest:
+Deletes the KUSSS category and all it's channels. **:rotating_light: This action is irreversible.**
+
 # Additional features
 Compared to [Kilian](https://github.com/rechen-werk/Kilian).
 * `/reload` command to manually reload the calendar file and automatic reload every 24h.
