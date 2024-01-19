@@ -35,6 +35,15 @@ fun SlashCommandInteractionEvent.replyBotError(content: String): ReplyCallbackAc
 	return reply("${StatusEmoji.BOT_ERROR} $content")
 }
 
+/**
+ * Sends a reply with the [StatusEmoji.INFO] emoji pre-pended.
+ * @param content The content of the reply
+ * @return The [ReplyCallbackAction] of the reply
+ */
+fun SlashCommandInteractionEvent.replyInfo(content: String): ReplyCallbackAction {
+	return reply("${StatusEmoji.INFO} $content")
+}
+
 // ---- Interaction Hooks
 
 /**
@@ -62,4 +71,13 @@ fun InteractionHook.sendMessageUserError(content: String) : WebhookMessageCreate
  */
 fun InteractionHook.sendMessageBotError(content: String) : WebhookMessageCreateAction<Message> {
 	return sendMessage("${StatusEmoji.BOT_ERROR} $content")
+}
+
+/**
+ * Sends a message with the [StatusEmoji.INFO] emoji pre-pended.
+ * @param content The content of the message
+ * @return The [WebhookMessageCreateAction] of the message
+ */
+fun InteractionHook.sendMessageInfo(content: String) : WebhookMessageCreateAction<Message> {
+	return sendMessage("${StatusEmoji.INFO} $content")
 }
