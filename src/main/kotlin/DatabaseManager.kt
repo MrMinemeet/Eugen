@@ -1,5 +1,8 @@
 import data.Course
+import data.LvaType
+import data.Semester
 import data.Student
+import java.net.URI
 import java.sql.Connection
 import java.sql.DriverManager
 
@@ -146,15 +149,35 @@ object DatabaseManager {
 		return rs.getInt("studentId")
 	}
 
+	fun getCourses(): Array<Course> {
+		val stmtStr = "SELECT * FROM courses"
+		val stmt = connection.prepareStatement(stmtStr)
+		val rs = stmt.executeQuery()
+		val courses = mutableListOf<Course>()
+
+		while (rs.next()) {
+			courses.add(Course(
+				LvaType.fromString(rs.getString("lvaType")),
+				rs.getString("lvaNr"),
+				Semester.fromString(rs.getString("semester")),
+				rs.getString("lvaName"),
+				emptyList(),
+				URI(rs.getString("url"))
+			))
+		}
+
+		return courses.toTypedArray()
+	}
+
 	fun getStudents(): Array<Student> {
 		val stmtStr = "SELECT * FROM students"
 		val stmt = connection.prepareStatement(stmtStr)
 		val rs = stmt.executeQuery()
 
-		val tokens = mutableListOf<Student>()
+		val students = mutableListOf<Student>()
 
 		while (rs.next()) {
-			tokens.add(Student(
+			students.add(Student(
 				rs.getString("discordName"),
 				rs.getString("userToken"),
 				rs.getLong("guildId"),
@@ -162,9 +185,31 @@ object DatabaseManager {
 			))
 		}
 
-		return tokens.toTypedArray()
+		return students.toTypedArray()
 	}
-	//
 
+	fun getStudentEnrollment(): Array<Pair<String, String>> {
+		val stmtStr = "SELECT * FROM studentEnrollment"
+		val stmt = connection.prepareStatement(stmtStr)
+		val rs = stmt.executeQuery()
 
+		val studentEnrollment = mutableListOf<Pair<String, String>>()
+
+		while (rs.next()) {
+			studentEnrollment.add(Pair(
+				rs.getString("discordName"),
+				rs.getString("course_id")
+			))
+		}
+
+		return studentEnrollment.toTypedArray()
+	}
+
+	fun removeStudentFromCourseEnrollment(student: Student, courseId: String) {
+		val stmtStr = "DELETE FROM studentEnrollment WHERE discordName = ? AND course_id = ?"
+		val stmt = connection.prepareStatement(stmtStr)
+		stmt.setString(1, student.discordName)
+		stmt.setString(2, courseId)
+		stmt.execute()
+	}
 }

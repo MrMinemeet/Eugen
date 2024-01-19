@@ -22,6 +22,14 @@ Reloads the data from the calendar file. This action is also performed automatic
 ## /delete-kusss :safety_vest:
 Deletes the KUSSS category and all it's channels. **:rotating_light: This action is irreversible.**
 
+## /join \<course-id\>
+Allows the users to join a course channel they don't attend. This is useful for students who already passed the course but want to stay in the channel to help others.
+The `course-id` is the ID of the course.
+
+## /leave \<course-id\>
+Allows the user to leave a course channel. This can be a channel they joined manually or a channel they were assigned to by Eugen.
+The `course-id` is the ID of the course.
+
 # Differences to Kilian
 * `/reload` command to manually reload the calendar file and automatic reload every 24h.
 * Created channels under the `KUSSS` category are sorted by their name in ascending order.

@@ -43,4 +43,34 @@ data class Student(
 			DatabaseManager.assignStudentToCourse(this, it)
 		}
 	}
+
+	/**
+	 * Creates a new student instance with the given courses removed
+	 * @param courses The courses to remove
+	 * @return A new student instance with the given courses removed
+	 */
+	fun removeCourses(vararg courses: Course): Student {
+		return Student(
+			discordName,
+			userToken,
+			guildId,
+			this.courses - courses.toList().toSet(),
+			studentId
+		)
+	}
+
+	/**
+	 * Creates a new student instance with the given courses added
+	 * @param courses The courses to add
+	 * @return A new student instance with the given courses added
+	 */
+	fun addCourses(vararg courses: Course): Student {
+		return Student(
+			discordName,
+			userToken,
+			guildId,
+			this.courses + courses.toList(),
+			studentId
+		)
+	}
 }

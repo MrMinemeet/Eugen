@@ -5,6 +5,7 @@ import java.net.URISyntaxException
 import java.sql.SQLException
 import net.dv8tion.jda.api.Permission
 import net.dv8tion.jda.api.entities.Guild
+import net.dv8tion.jda.api.entities.Member
 import net.dv8tion.jda.api.entities.channel.concrete.Category
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel
 import net.dv8tion.jda.api.events.guild.GuildReadyEvent
@@ -70,7 +71,7 @@ class CommandManager : ListenerAdapter() {
 				}
 				val student = try {
 					// By constructing a Student-object, the data is added to the database
-					val std = Student(it.user.globalName!!, it.guild!!.idLong, kusssUri.toURL(), studentId)
+					val std = Student(it.user.name, it.guild!!.idLong, kusssUri.toURL(), studentId)
 					std.insertIntoDatabase()
 					std.assignToCourses()
 
@@ -137,7 +138,7 @@ class CommandManager : ListenerAdapter() {
 				val discordName = try {
 					val member =
 						it.getOption("user")!!.asMember ?: throw IllegalArgumentException("Could not convert to Member")
-					member.user.globalName!!
+					member.user.name
 				} catch (ex: IllegalArgumentException) {
 					println("Could not retrieve member: ${ex.message}")
 					it.hook.sendMessageBotError("Could not retrieve mentioned user!")
@@ -215,6 +216,103 @@ class CommandManager : ListenerAdapter() {
 				println("Deleted category ${category.name}")
 				it.hook.sendMessageOK("Deleted category ${category.name} and it's channels").queue()
 			}
+		),
+
+		Cmd(
+			"join",
+			"Join a course channel you are not enrolled in",
+			{
+				it.deferReply().queue()
+
+				// Check if user is subscribed to Eugen Service
+				val student = getStudentFromName(it.user.name)
+				if (student == null) {
+					println("${it.user.name} didn't use /kusss yet. Can't join course channel")
+					it.hook.sendMessageUserError("Please use `/kusss` first").queue()
+					return@Cmd
+				}
+
+				// Check if user is already enrolled in the course
+				val courseId = it.getOption("course-id")!!.asString.replace(".", "")
+				if (DatabaseManager.getStudentEnrollment()
+						.any { (dN, cId) -> dN == student.discordName && cId == courseId }
+				) {
+					println("${student.discordName} already in course with ID $courseId")
+					it.hook.sendMessageInfo("You already have access to this course!").queue()
+					return@Cmd
+				}
+
+				// Check if course exists
+				val course = DatabaseManager.getCourses().firstOrNull { c -> c.lvaNr == courseId }
+				if (course == null) {
+					println("Could not find course with ID $courseId")
+					it.hook.sendMessageUserError("Could not find course with ID $courseId").queue()
+					return@Cmd
+				}
+
+				// Add course to student
+				val updatedStudent = student.addCourses(course)
+				updatedStudent.insertIntoDatabase()
+				updatedStudent.assignToCourses()
+
+				println("Enrolled ${student.discordName} in course ${course.lvaName}")
+				it.hook.sendMessageOK("You joined the course ${course.lvaName}").queue()
+			},
+			OptionData(OptionType.STRING, "course-id", "The course ID to join. E.g., 123.456", true)
+		),
+
+		Cmd(
+			"leave",
+			"Leave a course channel you joined via /join",
+			{
+				it.deferReply().queue()
+				val guild = it.guild!!
+
+				// Check if user is subscribed to Eugen Service
+				val student = getStudentFromName(it.user.name)
+				if (student == null) {
+					println("${it.user.name} didn't use /kusss yet. Can't join course channel")
+					it.hook.sendMessageUserError("Please use `/kusss` first").queue()
+					return@Cmd
+				}
+
+				// Check if user is even enrolled in the course
+				val courseId = it.getOption("course-id")!!.asString.replace(".", "")
+				if (DatabaseManager.getStudentEnrollment()
+						.none { (dN, cId) -> dN == student.discordName && cId == courseId }
+				) {
+					println("${student.discordName} not in a course with ID $courseId")
+					it.hook.sendMessageInfo("You are not in a course with that id!").queue()
+					return@Cmd
+				}
+
+				// Get course
+				val course = DatabaseManager.getCourses().firstOrNull { c -> c.lvaNr == courseId }
+				if (course == null) {
+					println("Could not find course with ID $courseId")
+					it.hook.sendMessageUserError("Could not find course with ID $courseId").queue()
+					return@Cmd
+				}
+
+				// Get course channel
+				val channelName = course.lvaName.replace(" ", "-").lowercase()
+				val channel = guild.textChannels.find { c -> c.name == channelName }
+				if(channel == null) {
+					println("Could not find channel with name $channelName")
+					it.hook.sendMessageBotError("Could not find channel with name $channelName").queue()
+					return@Cmd
+				}
+
+				// Remove course enrollment from student
+				DatabaseManager.removeStudentFromCourseEnrollment(student, courseId)
+
+				// Remove user from channel
+				removeStudentFromCourseChannel(it.member!!, channel)
+
+				println("Removed ${student.discordName} from course ${course.lvaName}")
+				it.hook.sendMessageOK("You left the course ${course.lvaName}").queue()
+			},
+			OptionData(OptionType.STRING, "course-id", "The course ID to join. E.g., 123.456", true)
 		)
 	)
 
@@ -319,6 +417,20 @@ class CommandManager : ListenerAdapter() {
 		sortChannels(guild)
 
 		println("All channels for ${student.discordName} queued!")
+	}
+
+	/**
+	 * Removes the user from the course channel.
+	 * @param member The member to remove from the channel
+	 * @param channel The channel to remove the member from
+	 */
+	private fun removeStudentFromCourseChannel(member: Member, channel: TextChannel) {
+		// Remove user from channel
+		channel.manager.putPermissionOverride(
+			member,
+			emptyList(),
+			listOf(Permission.VIEW_CHANNEL, Permission.MESSAGE_SEND)
+		).queue().let {	println("Removed ${member.nickname} from channel ${channel.name}") }
 	}
 
 	/**
@@ -428,4 +540,11 @@ class CommandManager : ListenerAdapter() {
 			channel.manager.setPosition(index).queue().let { println("Moved ${channel.name} to position $index") }
 		}
 	}
+
+	/**
+	 * Returns the student with the given name
+	 * @param name The name of the student
+	 * @return The student with the given name. May be null if no student with the given name exists
+	 */
+	private fun getStudentFromName(name: String) = DatabaseManager.getStudents().find { s -> s.discordName == name }
 }
