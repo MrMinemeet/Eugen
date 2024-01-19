@@ -286,6 +286,8 @@ class CommandManager : ListenerAdapter() {
 			).queue().let {	println("Assigned ${student.discordName} to channel ${channel.name}") }
 		}
 
+		sortChannels(guild)
+
 		println("All channels for ${student.discordName} queued!")
 	}
 
@@ -373,6 +375,24 @@ class CommandManager : ListenerAdapter() {
 			it.assignToCourses()
 			addUserToKusssRole(it)
 			addStudentToCourseChannels(it)
+		}
+	}
+
+	/**
+	 * Sorts the channels in the [CATEGORY_NAME] in ascending order by their name.
+	 * @param guild The guild to sort the channels on
+	 * @throws IllegalStateException If the category does not exist
+	 */
+	private fun sortChannels(guild: Guild) {
+		val category = guild.categories
+			.find { it.name == CATEGORY_NAME }
+			?: throw IllegalStateException("Could not find category $CATEGORY_NAME on ${guild.name}")
+
+		val channels = category.textChannels
+		val sortedChannels = channels.sortedBy { it.name }
+
+		sortedChannels.forEachIndexed { index, channel ->
+			channel.manager.setPosition(index).queue().let { println("Moved ${channel.name} to position $index") }
 		}
 	}
 }
