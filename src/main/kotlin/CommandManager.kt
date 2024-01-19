@@ -233,7 +233,6 @@ class CommandManager : ListenerAdapter() {
 		// Run separate thread that reloads all data every X time interval
 		thread {
 			while (true) {
-				println("Reloading all students' information")
 				reloadEntries(DatabaseManager.getStudents())
 				// Run once a day
 				Thread.sleep(1.days.inWholeMilliseconds)
@@ -370,6 +369,7 @@ class CommandManager : ListenerAdapter() {
 	 * @param students The students to reload
 	 */
 	private fun reloadEntries(students: Array<Student>) {
+		println("Reloading data for ${students.size} students")
 		students.forEach {
 			it.assignToCourses()
 			addUserToKusssRole(it)
