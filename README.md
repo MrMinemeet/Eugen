@@ -2,8 +2,15 @@
 
 Eugen is the successor to the sadly abandoned [Kilian](https://github.com/rechen-werk/Kilian) Discord Bot. After facing some issues with the old codebase, we decided to start from scratch and build a new bot in a more suited and modern language that is based on the JVM. Eugen is written in Kotlin instead of Python and should provide the same features and fix some issues that were present in Kilian.
 
+**So what does Eugen do?**
+
+Well, Eugen manages course channels based on KUSSS data like a good old restaurant under the sea 😉. This means that he creates channels for every course a user attends attend and assigns them using member permissions.
+Another perk of using Eugen is that a user can join a course channel with a simple command. 
+
+With all this automation you don't have to focus on managing your server and can focus on the important things in life, such as "studying", sleeping or making memes.
+
 # Usage
-**Note:** Commands marked with a :safety_vest: are only available to users added in the `managers.txt` file.
+**Note:** Commands marked with a ':safety_vest:' are only available to users added in the `managers.txt` file.
 
 ## /sleep :safety_vest:
 Gracefully puts Eugen to sleep. All remaining queued messages are sent before turning off.
@@ -12,6 +19,7 @@ Gracefully puts Eugen to sleep. All remaining queued messages are sent before tu
 Subscribes the user to the Eugen Service. 
 * The `url` is the link to the calendar file of [KUSSS](https://kuss.jku.at). The data is fetched, parsed and used to assign the corresponding LVA channels.
 * The optional `mat-nr` is the student's matriculation number. At this point it is optional but may be useful to know at some occasion.
+<img src="images/kusss.gif" width="600" />
 
 ## /unkusss
 Unsubscribes the user from the Eugen Service. Furthermore, any user-specific data stored is deleted.
