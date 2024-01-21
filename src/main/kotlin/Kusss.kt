@@ -138,7 +138,7 @@ object Kusss {
 	private fun calendarComponentToSession(props: List<Property>): Session {
 		// Summary property holds everything important for a "Course" object
 		val summary = props[props.indexOfFirst { it.name == Property.SUMMARY }]
-			.value.split('/')
+			.value.split(" / ")
 		val offset = if (summary.any { it.contains("LVA-Prüfung") }) 1 else 0
 
 		val startString = props[props.indexOfFirst { it.name == Property.DTSTART }].value.trim()
@@ -171,11 +171,16 @@ object Kusss {
 	private fun calendarComponentToCourse(props: List<Property>): Course {
 		// Summary property holds everything important for a "Course" object
 		val summary = props[props.indexOfFirst { it.name == Property.SUMMARY }]
-			.value.split('/')
+			.value.split(" / ")
 		val offset = if (summary.any { it.contains("LVA-Prüfung") }) 1 else 0
 
-		val lvaNr = summary[2 + offset].trim().trim('(')
-		val semester = if (summary[3 + offset].contains("W")) Semester.WINTER else Semester.SUMMER
+		val lvaNrAndSemester = summary[2 + offset].split("/")
+
+		val lvaNr = lvaNrAndSemester[0].trim().trim('(')
+		val semester = Semester.fromString(lvaNrAndSemester[1]
+			.trim().trim(')')
+			.toCharArray().last()
+			.toString())
 
 		val (lvaName, uri) = getLvaKusssInfo(lvaNr, summary[0 + offset].trim())
 
@@ -220,10 +225,11 @@ object Kusss {
 	private fun getLvaKusssInfo(lvaNr: String, curLvaName: String): Pair<String, URI> {
 		// Get course with matching lvaNr
 		val (name, uri) = allLVAs[lvaNr] ?: return Pair(curLvaName, getUnknownCourseURL(lvaNr))
+		val fixedName = fixLVAName(name)
 
-		if (!name.lowercase().contains("special topic")) {
+		if (!fixedName.lowercase().contains("special topic")) {
 			// Not a special topic, no further processing to do
-			return Pair(name, uri)
+			return Pair(fixedName, uri)
 		}
 
 		// Get actual name from uri
@@ -239,7 +245,7 @@ object Kusss {
 							.replace(".", "")
 							.contains(lvaNr)
 					}
-			} ?: return Pair(name, uri)
+			} ?: return Pair(fixedName, uri)
 
 		// Get all rows of table
 		val courseTableRows = courseTable
@@ -249,24 +255,24 @@ object Kusss {
 			.select("tr.priorityhighlighted")
 			.drop(1) // Drop the "tr" with the course number
 
-		if(courseTableRows.isEmpty()) return Pair(name, uri)
+		if(courseTableRows.isEmpty()) return Pair(fixedName, uri)
 
 		// Get the text of the first td
 		val courseName = courseTableRows[0].select("td")[0].text()
 			.substringAfter("Untertitel:").substringBefore("Zusatzinfo:").trim()
 
-		return Pair(courseName, uri)
+		return Pair(fixLVAName(courseName), uri)
 	}
 
 	/**
-	 * Removes the LvaType from the name of a course.
-	 * E.g., "VL Softwareentwicklung 1" -> "Softwareentwicklung 1"
+	 * Fixes some names by replacing "&" with "and" and so on
 	 * @param originalName The original name of the course
-	 * @return The name of the course without the LvaType
+	 * @return The fixed name of the course
 	 */
-	private fun removeLvaTypeFromName(originalName: String): String {
-		LvaType.entries.any { originalName.startsWith(it.name) }
-			.let { return if (it) originalName.substringAfter(' ') else originalName }
+	private fun fixLVAName(originalName: String): String {
+		return originalName
+			.replace("&", "and")
+			.replace("/", "-")
 	}
 
 	private fun getUnknownCourseURL(lvaNr: String): URI {

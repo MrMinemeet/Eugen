@@ -66,7 +66,7 @@ class CommandManager : ListenerAdapter() {
 					matNrStr?.asInt ?: -1
 				} catch (ex: Exception) {
 					println("MatNr could not be parsed: ${ex.message}")
-					it.hook.sendMessageUserError("Not a valid matrikel number!")
+					it.hook.sendMessageUserError("Not a valid matriculation number!")
 					return@Cmd
 				}
 				val student = try {
@@ -96,7 +96,7 @@ class CommandManager : ListenerAdapter() {
 				it.hook.sendMessageOK("You are now subscribed to the Eugen Service").queue()
 			},
 			OptionData(OptionType.STRING, "url", "URL to the KUSSS calendar", true),
-			OptionData(OptionType.INTEGER, "mat-nr", "Your matrikel number", false)
+			OptionData(OptionType.INTEGER, "mat-nr", "Your matriculation number", false)
 		),
 
 		Cmd("unkusss",
@@ -130,7 +130,7 @@ class CommandManager : ListenerAdapter() {
 
 		Cmd(
 			"matnr",
-			"Returns the matrikel number for the student",
+			"Returns the matriculation number for the student",
 			{
 				it.deferReply().queue()
 
@@ -150,7 +150,7 @@ class CommandManager : ListenerAdapter() {
 				}
 
 				if (discordName == Eugen.client.selfUser.name) {
-					it.hook.sendMessageUserError("I don't have a Matrikel Number. I'm running a successful restaurant")
+					it.hook.sendMessageUserError("I don't have a matriculation number. I'm running a successful restaurant")
 						.queue()
 					return@Cmd
 				}
@@ -159,12 +159,12 @@ class CommandManager : ListenerAdapter() {
 				val matNr = DatabaseManager.getStudentId(discordName)
 
 				if (matNr == 0) {
-					it.hook.sendMessageOK("Sorry, I was unable to find a Matrikel Number for the given user").queue()
+					it.hook.sendMessageOK("Sorry, I was unable to find a matriculation number for the given user").queue()
 				} else {
-					it.hook.sendMessageOK("Here is the Matrikel Number: `$matNr`").queue()
+					it.hook.sendMessageOK("Here is the matriculation number: `$matNr`").queue()
 				}
 			},
-			OptionData(OptionType.USER, "user", "The user to get the matrikel number from", true)
+			OptionData(OptionType.USER, "user", "The user to get the matriculation number from", true)
 		),
 
 		Cmd(
@@ -177,7 +177,8 @@ class CommandManager : ListenerAdapter() {
 					if (Eugen.isManager(it.user.name)) {
 						reloadEntries(students)
 					} else {
-						it.replyUserError("You are not my manager!").queue()
+						it.hook.sendMessageUserError("You are not my manager!").queue()
+						return@Cmd
 					}
 				} catch (sqlEx: SQLException) {
 					println("Could not retrieve member: ${sqlEx.message}")
