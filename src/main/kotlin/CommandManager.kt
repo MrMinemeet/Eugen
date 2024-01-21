@@ -71,7 +71,7 @@ class CommandManager : ListenerAdapter() {
 				}
 				val student = try {
 					// By constructing a Student-object, the data is added to the database
-					val std = Student(it.user.name, it.guild!!.idLong, kusssUri.toURL(), studentId)
+					val std = Student(it.user.name, it.guild!!.idLong, kusssUri, studentId)
 					std.insertIntoDatabase()
 					std.assignToCourses()
 

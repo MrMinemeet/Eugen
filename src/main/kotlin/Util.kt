@@ -73,12 +73,12 @@ object Util {
 
 	/**
 	 * Extracts the user token from a KUSSS Calendar URL
-	 * @param url The URL to extract the token from
+	 * @param uri The URL to extract the token from
 	 * @return The user token from the URL
 	 */
-	fun tokenFromURL(url: URL): Optional<String> {
+	fun tokenFromURI(uri: URI): Optional<String> {
 		val matchResult = Regex("token=([^&]+)")
-			.find(url.toString()) ?: return Optional.empty()
+			.find(uri.toString()) ?: return Optional.empty()
 		val group = matchResult.groups[1] ?: return Optional.empty()
 		return Optional.of(group.value)
 	}
