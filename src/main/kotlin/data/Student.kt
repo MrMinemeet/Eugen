@@ -3,7 +3,7 @@ package data
 import DatabaseManager
 import Kusss
 import Util
-import java.net.URL
+import java.net.URI
 
 /**
  * Represents a student
@@ -22,12 +22,12 @@ data class Student(
 	/**
 	 * Creates a new student with the given discord name and calendar token
 	 * @param discordName The discord name of the student
-	 * @param calendarURL The calendar url of the student
+	 * @param calendarURI The calendar url of the student
 	 */
-	constructor(discordName: String, guildId: Long, calendarURL: URL, studentId: Int = -1) :
+	constructor(discordName: String, guildId: Long, calendarURI: URI, studentId: Int = -1) :
 			this(
 				discordName,
-				Util.tokenFromURL(calendarURL).orElse(""),
+				Util.tokenFromURI(calendarURI).orElse(""),
 				guildId,
 				studentId = studentId
 			)
