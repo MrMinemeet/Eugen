@@ -24,6 +24,10 @@ Subscribes the user to the Eugen Service.
 ## /unkusss
 Unsubscribes the user from the Eugen Service. Furthermore, any user-specific data stored is deleted.
 
+## /matnr <@user>
+Retrieves the matriculation number of the user. This is only possible if the user is subscribed to the Eugen Service and stated their matriculation number.
+<img src="images/matnr.gif" width="600" />
+
 ## /reload :safety_vest:
 Reloads the data from the calendar file. This action is also performed automatically every 24 hours.
 
