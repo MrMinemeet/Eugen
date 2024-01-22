@@ -14,6 +14,7 @@ With all this automation you don't have to focus on managing your server and can
 
 ## /sleep :safety_vest:
 Gracefully puts Eugen to sleep. All remaining queued messages are sent before turning off.
+<img src="images/sleep.gif" width="600" />
 
 ## /kusss \<url\> [mat-nr]
 Subscribes the user to the Eugen Service. 
