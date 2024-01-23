@@ -5,7 +5,7 @@ plugins {
 
 
 group = "org.example"
-version = "1.0-SNAPSHOT"
+version = "0.1-inDev"
 
 repositories {
     mavenCentral()
@@ -20,4 +20,15 @@ dependencies {
         exclude(module = "opus-java")
     }
 }
+
+tasks.jar {
+    manifest.attributes["Main-Class"] = "MainKt"
+    val dependencies = configurations
+        .runtimeClasspath
+        .get()
+        .map(::zipTree) // OR .map { zipTree(it) }
+    from(dependencies)
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
 
