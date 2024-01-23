@@ -1,7 +1,8 @@
-package org.example.data
+package data
 
 enum class LvaType {
 	VL,
+	VO,
 	UE,
 	KV,
 	PR,
@@ -16,7 +17,8 @@ enum class LvaType {
 		 */
 		fun fromString(type: String): LvaType {
 			return when (type) {
-				"VL", "VO" -> VL
+				"VL" -> VL
+				"VO" -> VO
 				"UE" -> UE
 				"KV" -> KV
 				"PR" -> PR

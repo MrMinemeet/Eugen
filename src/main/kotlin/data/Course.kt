@@ -1,6 +1,6 @@
-package org.example.data
+package data
 
-import assignLecturerToCourse
+import DatabaseManager.assignLecturerToCourse
 import java.net.URI
 
 /**

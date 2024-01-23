@@ -1,11 +1,9 @@
-package org.example.data
+package data
 
-import assignStudentToCourse
-import insertCourse
-import insertStudent
-import java.net.URL
-import org.example.Kusss
-import org.example.Util
+import DatabaseManager
+import Kusss
+import Util
+import java.net.URI
 
 /**
  * Represents a student
@@ -17,25 +15,62 @@ import org.example.Util
 data class Student(
 	val discordName: String,
 	val userToken: String,
+	val guildId: Long,
 	val courses: List<Course> = Kusss.getCourses(userToken),
 	val studentId: Int = -1,
 ) {
 	/**
 	 * Creates a new student with the given discord name and calendar token
 	 * @param discordName The discord name of the student
-	 * @param calendarURL The calendar url of the student
+	 * @param calendarURI The calendar url of the student
 	 */
-	constructor(discordName: String, calendarURL: URL) :
-			this(discordName, Util.tokenFromURL(calendarURL).orElse("")) {
-				insertStudent(this)
-				assignToCourses()
-			}
+	constructor(discordName: String, guildId: Long, calendarURI: URI, studentId: Int = -1) :
+			this(
+				discordName,
+				Util.tokenFromURI(calendarURI).orElse(""),
+				guildId,
+				studentId = studentId
+			)
+
+	fun insertIntoDatabase() {
+		DatabaseManager.insertStudent(this)
+	}
 
 	fun assignToCourses() {
-		for (course in courses) {
-			insertCourse(course)
-			course.assignLecturers()
-			assignStudentToCourse(this, course)
+		courses.forEach {
+			DatabaseManager.insertCourse(it)
+			it.assignLecturers()
+			DatabaseManager.assignStudentToCourse(this, it)
 		}
+	}
+
+	/**
+	 * Creates a new student instance with the given courses removed
+	 * @param courses The courses to remove
+	 * @return A new student instance with the given courses removed
+	 */
+	fun removeCourses(vararg courses: Course): Student {
+		return Student(
+			discordName,
+			userToken,
+			guildId,
+			this.courses - courses.toList().toSet(),
+			studentId
+		)
+	}
+
+	/**
+	 * Creates a new student instance with the given courses added
+	 * @param courses The courses to add
+	 * @return A new student instance with the given courses added
+	 */
+	fun addCourses(vararg courses: Course): Student {
+		return Student(
+			discordName,
+			userToken,
+			guildId,
+			this.courses + courses.toList(),
+			studentId
+		)
 	}
 }
