@@ -104,26 +104,39 @@ class CommandManager : ListenerAdapter() {
 			{
 				it.deferReply().queue() // Show "thinking…"
 
-				// TODO: Delete user-specific data
+				val guild = it.guild!!
+
+				// Check if student is even kusssed
+				if (DatabaseManager.getStudents().none { s -> s.discordName == it.user.name }) {
+					println("${it.user.name} not kusssed!")
+					it.hook.sendMessageUserError("You are not registered to the Eugen Service!").queue()
+					return@Cmd
+				}
 
 
 				//remove KUSSS role
-				val role = it.guild?.roles?.find { role -> role.name == "KUSSS" }
+				val role = guild.roles.find { role -> role.name == "KUSSS" }
 				if (role != null) {
-					it.guild!!.removeRoleFromMember(it.user, role).queue()
+					guild.removeRoleFromMember(it.user, role).queue()
 					println("Removed user from role ${role.name}")
 				} else {
-					error("KUSSS role does not exist")
+					println("KUSSS role does not exist on ${guild.name}")
 				}
 
-				// unassign from all text channels in category KUSSS
-				val category = it.guild?.categories?.find { category -> category.name == "KUSSS" }
+				// Remove from all text channels in category KUSSS
+				val category = guild.categories.find { category -> category.name == "KUSSS" }
 				category?.textChannels?.forEach { channel ->
 					val permissionOverride = it.member?.let { member ->
 						channel.getPermissionOverride(member)
 					}
 					permissionOverride?.manager?.clear(Permission.VIEW_CHANNEL)?.queue()
 				}
+
+				// Remove assignment in Database
+				DatabaseManager.removeStudentFromAllCourseEnrollments(it.user.name)
+
+				// Remove database entry of user
+				DatabaseManager.removeStudent(it.user.name)
 
 				it.hook.sendMessageOK("You are now unsubscribed from my services").queue()
 			}),
@@ -186,7 +199,7 @@ class CommandManager : ListenerAdapter() {
 					return@Cmd
 				}
 
-				it.hook.sendMessageOK("KUSSS entry for ${students.size} students").queue()
+				it.hook.sendMessageOK("KUSSS entry for ${students.size} students reloaded").queue()
 			}
 		),
 
@@ -516,6 +529,10 @@ class CommandManager : ListenerAdapter() {
 	 * @param students The students to reload
 	 */
 	private fun reloadEntries(students: Array<Student>) {
+		if(students.isEmpty()) {
+			println("Nothing to reload!")
+			return
+		}
 		println("Reloading data for ${students.size} students")
 		students.forEach {
 			it.assignToCourses()

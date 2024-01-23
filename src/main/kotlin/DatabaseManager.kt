@@ -115,6 +115,15 @@ object DatabaseManager {
 		println("Inserted $discordName")
 	}
 
+	fun removeStudent(discordName: String) {
+		val stmtStr = "DELETE FROM students WHERE discordName = ?"
+		val stmt = connection.prepareStatement(stmtStr)
+		stmt.setString(1, discordName)
+		stmt.execute()
+
+		println("Removed user from database")
+	}
+
 	fun assignStudentToCourse(student : Student, course : Course, debugOutput: Boolean = false) {
 		val stmtStr = "INSERT INTO studentEnrollment(discordName, course_id) VALUES(?,?) ON CONFLICT(discordName, course_id) DO NOTHING"
 
@@ -130,6 +139,13 @@ object DatabaseManager {
 		stmt.execute()
 
 		println("Assigned $discordName to $courseId")
+	}
+
+	fun removeStudentFromAllCourseEnrollments(discordName: String) {
+		val stmtStr = "DELETE FROM studentEnrollment WHERE discordName = ?"
+		val stmt = connection.prepareStatement(stmtStr)
+		stmt.setString(1, discordName)
+		stmt.execute()
 	}
 
 	fun assignLecturerToCourse(course : Course, lecturer : String) {
