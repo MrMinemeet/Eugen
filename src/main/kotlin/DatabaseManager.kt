@@ -18,6 +18,8 @@ object DatabaseManager {
 		createLecturerAssignmentTable()
 		createStudentTable()
 		createStudentEnrollmentTable()
+		createLocationTable()
+		createExamTable()
 	}
 
 	private fun createCoursesTable() {

@@ -18,6 +18,7 @@ data class Student(
 	val guildId: Long,
 	val courses: List<Course> = Kusss.getCourses(userToken),
 	val studentId: Int = -1,
+	val exams: List<Exam?> = Kusss.getExams(userToken)
 ) {
 	/**
 	 * Creates a new student with the given discord name and calendar token
@@ -41,6 +42,7 @@ data class Student(
 			DatabaseManager.insertCourse(it)
 			it.assignLecturers()
 			DatabaseManager.assignStudentToCourse(this, it)
+			exams.filter { exam -> exam?.lvaNr == it.lvaNr }.forEach { exam -> DatabaseManager.insertExam(exam!!) }
 		}
 	}
 

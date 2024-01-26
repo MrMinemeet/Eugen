@@ -420,6 +420,11 @@ class CommandManager : ListenerAdapter() {
 				.find { it.name.contentEquals(channelName) }
 				?: createCourseChannel(guild, channelName, course.uri.toString())
 
+			val nextExam = student.exams.filter { exam -> exam?.lvaNr == course.lvaNr }.firstOrNull()
+			if (nextExam != null) {
+				channel.manager.setTopic(nextExam.date.toString() + " - " + nextExam.location).queue()
+			}
+
 			// Add user to channel
 			channel.manager.putPermissionOverride(
 				guildMember,
