@@ -1,7 +1,4 @@
-import data.Course
-import data.LvaType
-import data.Semester
-import data.Student
+import data.*
 import java.net.URI
 import java.sql.Connection
 import java.sql.DriverManager
@@ -60,6 +57,60 @@ object DatabaseManager {
 		statement.execute(stmtStr)
 	}
 
+	private fun createExamTable() {
+		val statement = connection.createStatement()
+		val stmtStr = """
+		CREATE TABLE IF NOT EXISTS exams (examId int PRIMARY KEY, lvaNr int, date text, 
+		time text, locationId int, FOREIGN KEY (lvaNr) REFERENCES courses(lvaNr), FOREIGN KEY (locationId) REFERENCES locations(locationId)
+	""".trimIndent()
+		statement.execute(stmtStr)
+	}
+
+	private fun createLocationTable() {
+		val statement = connection.createStatement()
+		val stmtStr = """
+		CREATE TABLE IF NOT EXISTS locations (locationId int PRIMARY KEY, name text)
+	""".trimIndent()
+		statement.execute(stmtStr)
+	}
+
+	fun insertExam(exam : Exam) {
+		val stmtStr = """
+		INSERT INTO exams(lvaNr, date, time, locationId) VALUES(?,?,?,?) ON CONFLICT(examId) 
+		DO UPDATE SET lvaNr=excluded.lvaNr, date=excluded.date, time=excluded.time, locationId=excluded.locationId;
+	""".trimIndent()
+		val weekDay : String = exam.date.toLocalDate().dayOfWeek.toString()
+		val day : String = exam.date.toLocalDate().dayOfMonth.toString()
+		val month : String = exam.date.toLocalDate().month.toString()
+		val year : String = exam.date.toLocalDate().year.toString()
+		val time : String = exam.date.time.toString()
+		val stmt = connection.prepareStatement(stmtStr)
+		stmt.setString(1, exam.lvaNr)
+		stmt.setString(2, weekDay + ", " + day + "." + month + "." + year)
+		stmt.setString(3, time)
+		stmt.setInt(4, exam.locationId)
+		stmt.execute()
+	}
+
+	fun insertLocation(location : Location) {
+		val stmtStr = """
+		INSERT INTO locations(name) VALUES(?) ON CONFLICT(locationId) 
+		DO UPDATE SET name=excluded.name;
+	""".trimIndent()
+		val stmt = connection.prepareStatement(stmtStr)
+		stmt.setString(1, location.name)
+		stmt.execute()
+
+		val getIDStmtStr = """
+			SELECT locationId FROM locations WHERE name = ?
+		""".trimIndent()
+
+		val getIDStmt = connection.prepareStatement(getIDStmtStr)
+		getIDStmt.setString(1, location.name)
+		val rs = getIDStmt.executeQuery()
+		location.id = rs.getInt("locationId")
+	}
+
 	fun insertCourse(course : Course, debugOutput: Boolean = false) {
 		val lvaType : String = course.lvaType.toString()
 		if (debugOutput) println(lvaType)
@@ -88,6 +139,7 @@ object DatabaseManager {
 
 		stmt.execute()
 	}
+
 
 	fun insertStudent(student : Student, debugOutput: Boolean = false) {
 		val stmtStr = """
