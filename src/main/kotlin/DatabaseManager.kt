@@ -83,7 +83,7 @@ object DatabaseManager {
 		val day : String = exam.date.toLocalDate().dayOfMonth.toString()
 		val month : String = exam.date.toLocalDate().month.toString()
 		val year : String = exam.date.toLocalDate().year.toString()
-		val time : String = exam.date.time.toString()
+		val time : String = exam.date.hour.toString() + ":" + exam.date.minute.toString()
 		val stmt = connection.prepareStatement(stmtStr)
 		stmt.setString(1, exam.lvaNr)
 		stmt.setString(2, weekDay + ", " + day + "." + month + "." + year)

@@ -1,7 +1,4 @@
-import data.Course
-import data.LvaType
-import data.Semester
-import data.Session
+import data.*
 import java.io.StringReader
 import java.net.URI
 import java.time.LocalDateTime
@@ -12,6 +9,7 @@ import net.fortuna.ical4j.model.Component
 import net.fortuna.ical4j.model.Property
 import net.fortuna.ical4j.model.component.CalendarComponent
 import org.jsoup.Jsoup
+import java.util.Date
 
 object Kusss {
 
@@ -95,6 +93,16 @@ object Kusss {
 
 	 */
 	private fun getCourses(uri: URI, calendar: Calendar? = null): List<Course> {
+		val currentSemester = Semester.current()
+		return (calendar ?: calendarFromKUSSS(uri)) // Use passed calendar if possible
+			.getComponents<CalendarComponent>()
+			.filter { it.name.equals(Component.VEVENT) } // Filter out any other entries that are not a EVENT
+			.map { calendarComponentToCourse(it.getProperties()) }
+			.filter { it.semester == currentSemester } // Filter out courses that are not in the current semester
+			.distinct()
+	}
+
+	private fun getExams(uri: URI, calendar: Calendar? = null, course : String): List<Exam> {
 		val currentSemester = Semester.current()
 		return (calendar ?: calendarFromKUSSS(uri)) // Use passed calendar if possible
 			.getComponents<CalendarComponent>()
@@ -192,6 +200,28 @@ object Kusss {
 			lvaName,
 			summary[1 + offset].split(',').map { it.trim() },
 			uri
+		)
+	}
+
+	private fun calendarComponentToExam(props: List<Property>): Exam {
+		// Summary property holds everything important for a "Course" object
+		val summary = props[props.indexOfFirst { it.name == Property.SUMMARY }]
+			.value.split(" / ")
+		val offset = if (summary.any { it.contains("LVA-Prüfung") }) 1 else 0
+
+		val lvaNrAndSemester = summary[2 + offset].split("/")
+
+		val lvaNr = lvaNrAndSemester[0].trim().trim('(')
+		val semester = Semester.fromString(lvaNrAndSemester[1]
+			.trim().trim(')')
+			.toCharArray().last()
+			.toString())
+
+		val (lvaName, uri) = getLvaKusssInfo(lvaNr, summary[0 + offset].trim())
+
+		// Fetch actual data and return Course object
+		return Exam(
+			lvaNr, "Test", date = LocalDateTime.now() , locationId = 1
 		)
 	}
 
