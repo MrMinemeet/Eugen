@@ -61,7 +61,7 @@ object DatabaseManager {
 		val statement = connection.createStatement()
 		val stmtStr = """
 		CREATE TABLE IF NOT EXISTS exams (examId int PRIMARY KEY, lvaNr int, date text, 
-		time text, locationId int, FOREIGN KEY (lvaNr) REFERENCES courses(lvaNr), FOREIGN KEY (locationId) REFERENCES locations(locationId)
+		time text, locationId int, FOREIGN KEY (lvaNr) REFERENCES courses(lvaNr), FOREIGN KEY (locationId) REFERENCES locations(locationId))
 	""".trimIndent()
 		statement.execute(stmtStr)
 	}
