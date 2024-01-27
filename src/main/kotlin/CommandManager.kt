@@ -16,7 +16,6 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter
 import net.dv8tion.jda.api.interactions.commands.OptionType
 import net.dv8tion.jda.api.interactions.commands.build.Commands
 import net.dv8tion.jda.api.interactions.commands.build.OptionData
-import net.dv8tion.jda.api.managers.channel.concrete.TextChannelManager
 import net.dv8tion.jda.api.requests.restaction.CommandListUpdateAction
 import util.replyBotError
 import util.replyOK
