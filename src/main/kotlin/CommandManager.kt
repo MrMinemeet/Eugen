@@ -16,6 +16,7 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter
 import net.dv8tion.jda.api.interactions.commands.OptionType
 import net.dv8tion.jda.api.interactions.commands.build.Commands
 import net.dv8tion.jda.api.interactions.commands.build.OptionData
+import net.dv8tion.jda.api.managers.channel.concrete.TextChannelManager
 import net.dv8tion.jda.api.requests.restaction.CommandListUpdateAction
 import util.replyBotError
 import util.replyOK
@@ -424,7 +425,7 @@ class CommandManager : ListenerAdapter() {
 			val nextExam = student.exams.filter { exam -> exam?.lvaNr == course.lvaNr }.firstOrNull()
 
 			if (nextExam != null) {
-				channel.manager.setTopic(nextExam.date.toString() + " - " + nextExam.location).queue()
+				updateCourseTopic(channel.manager, course.uri.toString(), nextExam)
 			}
 
 			// Add user to channel
@@ -491,7 +492,10 @@ class CommandManager : ListenerAdapter() {
 			?: createCourseChannel(guild, name, uri)
 
 		channel.manager.setTopic("Links: [KUSSS]($uri)\n" + nextExam.date.toString() + " - " + nextExam.location).queue()
+	}
 
+	private fun updateCourseTopic(manager: TextChannelManager, uri: String, nextExam : Exam) {
+		manager.setTopic("Links: [KUSSS]($uri)\n" + nextExam.date.toString() + " - " + nextExam.location).queue()
 	}
 
 	/**
