@@ -496,7 +496,7 @@ class CommandManager : ListenerAdapter() {
 		if(nextExam == null) {
 			return "Links: [KUSSS]($uri)"
 		}
-		return "Links: [KUSSS]($uri), Next exam:" + nextExam.date.toString() + " - " + nextExam.location
+		return "Links: [KUSSS]($uri), Next exam: " + nextExam.date.toString() + " - " + nextExam.location
 	}
 	private fun updateCourseTopic(channel: TextChannel, uri: String, nextExam : Exam?) {
 		//TODO parse existing exam date and update if nextExam is earlier than currently present, delete if exam is in the past
