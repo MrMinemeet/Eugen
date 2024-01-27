@@ -1,3 +1,4 @@
+import data.Exam
 import data.Student
 import java.awt.Color
 import java.net.URI
@@ -481,6 +482,15 @@ class CommandManager : ListenerAdapter() {
 		val channel = channelAction.complete()
 		println("Created channel ${channel.name}")
 		return channel
+	}
+
+	private fun updateCourseTopic(guild: Guild, name: String, uri: String, nextExam : Exam) {
+		val channel = guild.textChannels
+			.find { it.name.contentEquals(name) }
+			?: createCourseChannel(guild, name, uri)
+
+		channel.manager.setTopic("Links: [KUSSS]($uri)\n" + nextExam.date.toString() + " - " + nextExam.location).queue()
+
 	}
 
 	/**
