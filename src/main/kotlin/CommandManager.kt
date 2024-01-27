@@ -422,6 +422,7 @@ class CommandManager : ListenerAdapter() {
 				?: createCourseChannel(guild, channelName, course.uri.toString())
 
 			val nextExam = student.exams.filter { exam -> exam?.lvaNr == course.lvaNr }.firstOrNull()
+
 			if (nextExam != null) {
 				channel.manager.setTopic(nextExam.date.toString() + " - " + nextExam.location).queue()
 			}
@@ -484,7 +485,7 @@ class CommandManager : ListenerAdapter() {
 		return channel
 	}
 
-	private fun updateCourseTopic(guild: Guild, name: String, uri: String, nextExam : Exam) {
+	private fun createOrUpdateCourseChannel(guild: Guild, name: String, uri: String, nextExam : Exam) {
 		val channel = guild.textChannels
 			.find { it.name.contentEquals(name) }
 			?: createCourseChannel(guild, name, uri)
