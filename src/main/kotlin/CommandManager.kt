@@ -169,9 +169,8 @@ class CommandManager : ListenerAdapter() {
 					return@Cmd
 				}
 
-				// TODO: Query database for discordName in order to get matNr.
+				//Get MatNr
 				val matNr = DatabaseManager.getStudentId(discordName)
-
 				if (matNr == 0) {
 					it.hook.sendMessageOK("Sorry, I was unable to find a matriculation number for the given user").queue()
 				} else {
@@ -459,14 +458,14 @@ class CommandManager : ListenerAdapter() {
 	 * @param guild The guild to create the channel on
 	 * @param name The name of the channel
 	 */
-	private fun createCourseChannel(guild: Guild, name: String, topic: String = ""): TextChannel {
+	private fun createCourseChannel(guild: Guild, name: String, uri: String = "", nextExam: Exam? = null): TextChannel {
 		val channelAction = guild.createTextChannel(name)
 		val category = guild.categories
 			.find { it.name == CATEGORY_NAME }
 			?: createCategory(guild, CATEGORY_NAME)
 		channelAction.setParent(category)
 
-		channelAction.setTopic("Links: [KUSSS]($topic)") // TODO: Add exam date
+		channelAction.setTopic(formatExamTopic(uri, nextExam))
 
 		channelAction.addPermissionOverride(
 			guild.publicRole,
@@ -490,11 +489,18 @@ class CommandManager : ListenerAdapter() {
 			.find { it.name.contentEquals(name) }
 			?: createCourseChannel(guild, name, uri)
 
-		channel.manager.setTopic("Links: [KUSSS]($uri)\n" + nextExam.date.toString() + " - " + nextExam.location).queue()
+		updateCourseTopic(channel, uri, nextExam)
 	}
 
-	private fun updateCourseTopic(channel: TextChannel, uri: String, nextExam : Exam) {
-		channel.manager.setTopic("Links: [KUSSS]($uri)\n" + nextExam.date.toString() + " - " + nextExam.location).queue()
+	private fun formatExamTopic(uri: String, nextExam : Exam?) : String {
+		if(nextExam == null) {
+			return "Links: [KUSSS]($uri)"
+		}
+		return "Links: [KUSSS]($uri), Next exam:" + nextExam.date.toString() + " - " + nextExam.location
+	}
+	private fun updateCourseTopic(channel: TextChannel, uri: String, nextExam : Exam?) {
+		//TODO parse existing exam date and update if nextExam is earlier than currently present, delete if exam is in the past
+		channel.manager.setTopic(formatExamTopic(uri, nextExam)).queue()
 	}
 
 	/**
