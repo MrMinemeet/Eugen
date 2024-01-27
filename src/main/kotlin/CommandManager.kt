@@ -425,7 +425,7 @@ class CommandManager : ListenerAdapter() {
 			val nextExam = student.exams.filter { exam -> exam?.lvaNr == course.lvaNr }.firstOrNull()
 
 			if (nextExam != null) {
-				updateCourseTopic(channel.manager, course.uri.toString(), nextExam)
+				updateCourseTopic(channel, course.uri.toString(), nextExam)
 			}
 
 			// Add user to channel
@@ -494,8 +494,8 @@ class CommandManager : ListenerAdapter() {
 		channel.manager.setTopic("Links: [KUSSS]($uri)\n" + nextExam.date.toString() + " - " + nextExam.location).queue()
 	}
 
-	private fun updateCourseTopic(manager: TextChannelManager, uri: String, nextExam : Exam) {
-		manager.setTopic("Links: [KUSSS]($uri)\n" + nextExam.date.toString() + " - " + nextExam.location).queue()
+	private fun updateCourseTopic(channel: TextChannel, uri: String, nextExam : Exam) {
+		channel.manager.setTopic("Links: [KUSSS]($uri)\n" + nextExam.date.toString() + " - " + nextExam.location).queue()
 	}
 
 	/**
