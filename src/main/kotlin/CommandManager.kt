@@ -501,6 +501,7 @@ class CommandManager : ListenerAdapter() {
 	private fun updateCourseTopic(channel: TextChannel, uri: String, nextExam : Exam?) {
 		//TODO parse existing exam date and update if nextExam is earlier than currently present, delete if exam is in the past
 		channel.manager.setTopic(formatExamTopic(uri, nextExam)).queue()
+		println("Updated topic of channel ${channel.name}")
 	}
 
 	/**
