@@ -1,6 +1,9 @@
 package data
 
 import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+
+
 
 data class Exam(
     val lvaNr: String,
@@ -9,7 +12,8 @@ data class Exam(
     val locationId : Int = -1
 ) {
     override fun toString(): String {
-        return "Date: $date, Location: $location"
+        val formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy hh:mm")
+        return "Date: ${formatter.format(date)}, Location: $location"
     }
 }
 
