@@ -9,10 +9,10 @@ data class Exam(
     val lvaNr: String,
     val location : String,
     val date : LocalDateTime,
-    val locationId : Int = -1
+    val locationId : Int = -1,
+    val formatter : DateTimeFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy hh:mm")
 ) {
     override fun toString(): String {
-        val formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy hh:mm")
         return "Date: ${formatter.format(date)}, Location: $location"
     }
 }
