@@ -88,7 +88,7 @@ object DatabaseManager {
 		val time : String = exam.date.hour.toString() + ":" + exam.date.minute.toString()
 		val stmt = connection.prepareStatement(stmtStr)
 		stmt.setString(1, exam.lvaNr)
-		stmt.setString(2, weekDay + ", " + day + "." + month + "." + year)
+		stmt.setString(2, "$weekDay, $day.$month.$year")
 		stmt.setString(3, time)
 		stmt.setInt(4, exam.locationId)
 		stmt.execute()
