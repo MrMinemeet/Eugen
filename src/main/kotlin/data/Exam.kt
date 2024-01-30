@@ -1,15 +1,19 @@
 package data
 
-import java.sql.Date
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+
+
 
 data class Exam(
     val lvaNr: String,
     val location : String,
-    val date : Date,
-    val locationId : Int
+    val date : LocalDateTime,
+    val locationId : Int = -1,
+    val formatter : DateTimeFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy hh:mm")
 ) {
     override fun toString(): String {
-        return "Date: $date, Location: $location"
+        return "Date: ${formatter.format(date)}, Location: $location"
     }
 }
 

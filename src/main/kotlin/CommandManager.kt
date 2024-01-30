@@ -1,3 +1,4 @@
+import data.Exam
 import data.Student
 import java.awt.Color
 import java.net.URI
@@ -168,9 +169,8 @@ class CommandManager : ListenerAdapter() {
 					return@Cmd
 				}
 
-				// TODO: Query database for discordName in order to get matNr.
+				//Get MatNr
 				val matNr = DatabaseManager.getStudentId(discordName)
-
 				if (matNr == 0) {
 					it.hook.sendMessageOK("Sorry, I was unable to find a matriculation number for the given user").queue()
 				} else {
@@ -420,6 +420,12 @@ class CommandManager : ListenerAdapter() {
 				.find { it.name.contentEquals(channelName) }
 				?: createCourseChannel(guild, channelName, course.uri.toString())
 
+			val nextExam = student.exams.filter { exam -> exam?.lvaNr == course.lvaNr }.firstOrNull()
+
+			if (nextExam != null) {
+				updateCourseTopic(channel, course.uri.toString(), nextExam)
+			}
+
 			// Add user to channel
 			channel.manager.putPermissionOverride(
 				guildMember,
@@ -452,14 +458,14 @@ class CommandManager : ListenerAdapter() {
 	 * @param guild The guild to create the channel on
 	 * @param name The name of the channel
 	 */
-	private fun createCourseChannel(guild: Guild, name: String, topic: String = ""): TextChannel {
+	private fun createCourseChannel(guild: Guild, name: String, uri: String = "", nextExam: Exam? = null): TextChannel {
 		val channelAction = guild.createTextChannel(name)
 		val category = guild.categories
 			.find { it.name == CATEGORY_NAME }
 			?: createCategory(guild, CATEGORY_NAME)
 		channelAction.setParent(category)
 
-		channelAction.setTopic("Links: [KUSSS]($topic)") // TODO: Add exam date
+		channelAction.setTopic(formatExamTopic(uri, nextExam))
 
 		channelAction.addPermissionOverride(
 			guild.publicRole,
@@ -476,6 +482,26 @@ class CommandManager : ListenerAdapter() {
 		val channel = channelAction.complete()
 		println("Created channel ${channel.name}")
 		return channel
+	}
+
+	private fun createOrUpdateCourseChannel(guild: Guild, name: String, uri: String, nextExam : Exam) {
+		val channel = guild.textChannels
+			.find { it.name.contentEquals(name) }
+			?: createCourseChannel(guild, name, uri)
+
+		updateCourseTopic(channel, uri, nextExam)
+	}
+
+	private fun formatExamTopic(uri: String, nextExam : Exam?) : String {
+		if(nextExam == null) {
+			return "Links: [KUSSS]($uri)"
+		}
+		return "Links: [KUSSS]($uri), Next exam: $nextExam"
+	}
+	private fun updateCourseTopic(channel: TextChannel, uri: String, nextExam : Exam?) {
+		//TODO parse existing exam date and update if nextExam is earlier than currently present, delete if exam is in the past
+		channel.manager.setTopic(formatExamTopic(uri, nextExam)).queue()
+		println("Updated topic of channel ${channel.name}")
 	}
 
 	/**

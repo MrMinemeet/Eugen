@@ -1,7 +1,4 @@
-import data.Course
-import data.LvaType
-import data.Semester
-import data.Session
+import data.*
 import java.io.StringReader
 import java.net.URI
 import java.time.LocalDateTime
@@ -12,6 +9,7 @@ import net.fortuna.ical4j.model.Component
 import net.fortuna.ical4j.model.Property
 import net.fortuna.ical4j.model.component.CalendarComponent
 import org.jsoup.Jsoup
+import java.util.Date
 
 object Kusss {
 
@@ -104,6 +102,38 @@ object Kusss {
 			.distinct()
 	}
 
+	fun getExams(userToken: String, calendar: Calendar? = null): List<Exam?> {
+		if (userToken.isEmpty() || userToken.contains("http")) throw IllegalArgumentException("Invalid token provided")
+		return getExams(
+			URI("https://www.kusss.jku.at/kusss/published-calendar.action?token=${userToken}&lang=de"),
+			calendar
+		)
+	}
+	fun getExams(userToken: String, calendar: Calendar? = null, course : Course): List<Exam?> {
+		if (userToken.isEmpty() || userToken.contains("http")) throw IllegalArgumentException("Invalid token provided")
+		return getExams(
+			URI("https://www.kusss.jku.at/kusss/published-calendar.action?token=${userToken}&lang=de"),
+			calendar
+		)
+	}
+	private fun getExams(uri: URI, calendar: Calendar? = null, course : Course): List<Exam?> {
+		return (calendar ?: calendarFromKUSSS(uri)) // Use passed calendar if possible
+			.getComponents<CalendarComponent>()
+			.filter { it.name.equals(Component.VEVENT) } // Filter out any other entries that are not a EVENT
+			.map { calendarComponentToExam(it.getProperties()) }
+			.filter { it?.lvaNr == course.lvaNr } // Filter out courses that are not in the current semester
+			.distinct()
+	}
+
+	private fun getExams(uri: URI, calendar: Calendar? = null): List<Exam?> {
+		return (calendar ?: calendarFromKUSSS(uri)) // Use passed calendar if possible
+			.getComponents<CalendarComponent>()
+			.filter { it.name.equals(Component.VEVENT) } // Filter out any other entries that are not a EVENT
+			.map { calendarComponentToExam(it.getProperties()) }
+			.distinct()
+	}
+
+
 	/**
 	 * Returns a list of all [Session]s for a given user token
 	 * @param userToken The user token of the user
@@ -173,8 +203,9 @@ object Kusss {
 		val summary = props[props.indexOfFirst { it.name == Property.SUMMARY }]
 			.value.split(" / ")
 		val offset = if (summary.any { it.contains("LVA-Prüfung") }) 1 else 0
-
 		val lvaNrAndSemester = summary[2 + offset].split("/")
+
+
 
 		val lvaNr = lvaNrAndSemester[0].trim().trim('(')
 		val semester = Semester.fromString(lvaNrAndSemester[1]
@@ -193,6 +224,34 @@ object Kusss {
 			summary[1 + offset].split(',').map { it.trim() },
 			uri
 		)
+	}
+
+	//returns exam if component is exam, returns null if not
+	private fun calendarComponentToExam(props: List<Property>): Exam? {
+		// Summary property holds everything important for a "Course" object
+		val summary = props[props.indexOfFirst { it.name == Property.SUMMARY }]
+			.value.split(" / ")
+		val offset = if (summary.any { it.contains("LVA-Prüfung") }) 1 else 0
+
+		if(offset == 0) {
+			return null
+		}
+		val lvaNrAndSemester = summary[2 + offset].split("/")
+
+		val lvaNr = lvaNrAndSemester[0].trim().trim('(')
+
+		val formatter = DateTimeFormatter.ofPattern("yyyyMMdd'T'HHmmss")
+		val date = LocalDateTime.parse(props[props.indexOfFirst { it.name == Property.DTSTART }].value.trim(), formatter)
+		val locationIndex = props.indexOfFirst { it.name == Property.LOCATION }
+
+		val locationName : String
+		if(locationIndex != -1) {
+			locationName = props[locationIndex].value.trim()
+		} else {
+			locationName = "Unknown"
+		}
+		// Fetch actual data and return Course object
+		return Exam(lvaNr, locationName, date)
 	}
 
 	/**
