@@ -5,6 +5,7 @@ import java.net.URI
 import java.net.URL
 import java.util.*
 import javax.net.ssl.HttpsURLConnection
+import net.dv8tion.jda.api.entities.User
 import kotlin.concurrent.thread
 import kotlin.time.Duration.Companion.hours
 
@@ -81,6 +82,17 @@ object Util {
 			.find(uri.toString()) ?: return Optional.empty()
 		val group = matchResult.groups[1] ?: return Optional.empty()
 		return Optional.of(group.value)
+	}
+
+	/**
+	 * Sends a private message to the given user
+	 * @param user The user to send the message to
+	 * @param message The message to send
+	 */
+	fun sendPM(user: User, message: String) {
+		user.openPrivateChannel()
+			.flatMap { it.sendMessage(message) }
+			.queue()
 	}
 
 	/**

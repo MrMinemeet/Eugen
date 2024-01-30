@@ -347,7 +347,13 @@ class CommandManager : ListenerAdapter() {
 			return
 		}
 
-		cmd.onEvent(event)
+		// Catch any other errors
+		try {
+			cmd.onEvent(event)
+		} catch(ex: Exception) {
+			println("Something went wrong! See: ${ex.message}")
+			event.hook.sendMessageBotError("Something went wrong!").queue()
+		}
 	}
 
 	/**
