@@ -46,7 +46,7 @@ The `course-id` is the ID of the course.
 # Differences to Kilian
 * `/reload` command to manually reload the calendar file and automatic reload every 24h.
 * Created channels under the `KUSSS` category are sorted by their name in ascending order.
-* Places KUSSS url into the channel topic. (TODO: Add exam info)
+* Places KUSSS url into the channel topic.
 * No explicit `/ping` command in order to mention specific users. The roles are channel based and therefore a normal `@everyone` or `@here` inside the channel is sufficient.
 
 
