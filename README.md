@@ -80,3 +80,11 @@ The bot delivers all major dependencies in the form of a fat jar. The only requi
 * Notify new users about the bot's existence and how to use it. (See `send_user_join_info` branch)
 * Handle more than 50 courses, as the current limit is 50 channels per category. Solution: Split the courses into multiple same-sized categories.
 
+---
+# Missing Semester
+## Members:
+* Alexander Voglsperger - k12005568
+* Bernhard Schertler - k12006715
+
+## Publishing
+If desired, you can publish it on the website or just link to the public [GitHub](https://github.com/MrMinemeet/Eugen) repository.
