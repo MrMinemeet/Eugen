@@ -10,7 +10,7 @@ Another perk of using Eugen is that a user can join a course channel with a simp
 With all this automation you don't have to focus on managing your server and can focus on the important things in life, such as "studying", sleeping or making memes.
 
 # Usage
-**Note:** Commands marked with a ':safety_vest:' are only available to users added in the `managers.txt` file.
+**Note:** Commands marked with a ' :safety_vest: ' are only available to users added in the `managers.txt` file.
 
 ## /sleep :safety_vest:
 Gracefully puts Eugen to sleep. All remaining queued messages are sent before turning off.
