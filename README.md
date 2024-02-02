@@ -70,7 +70,7 @@ The bot delivers all major dependencies in the form of a fat jar. The only requi
 4. Use the link at the bottom of the page to invite the bot to your server.
 
 ## Get the bot running
-1. Download the latest release from [HERE](https://github.com/mrminemeet/releases).
+1. Download the latest release from [HERE](https://github.com/MrMinemeet/Eugen/releases).
 2. Extract the archive.
 3. Create a file called `managers.txt` and add your unique discord username (the name that replaced the `name#number`) to it.
 4. Set the previously received token as the environment variable `EUGEN_BOT_TOKEN`.g
