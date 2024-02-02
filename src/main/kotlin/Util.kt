@@ -58,7 +58,7 @@ object Util {
 			}
 		} catch (e: IOException) {
 			System.err.println("Failed to get ics content from provided URL")
-			System.err.println(e.stackTrace)
+			System.err.println(e.message)
 		}
 		return response.toString()
 	}

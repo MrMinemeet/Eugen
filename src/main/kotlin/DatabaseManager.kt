@@ -220,19 +220,45 @@ object DatabaseManager {
 	}
 
 	fun getCourses(): Array<Course> {
-		val stmtStr = "SELECT * FROM courses"
+		val stmtStr = """
+			SELECT courses.lvaNr, lvaType, semester, lvaName, url, lecturer FROM courses
+			LEFT JOIN lecturerAssignment ON courses.lvaNr = lecturerAssignment.lvaNr
+		""".trimIndent()
 		val stmt = connection.prepareStatement(stmtStr)
 		val rs = stmt.executeQuery()
-		val courses = mutableListOf<Course>()
+		val tmpCourses = mutableListOf<Course>()
+
+		val lecturerMap = mutableMapOf<String, MutableList<String>>()
 
 		while (rs.next()) {
-			courses.add(Course(
+			tmpCourses.add(Course(
 				LvaType.fromString(rs.getString("lvaType")),
 				rs.getString("lvaNr"),
 				Semester.fromString(rs.getString("semester")),
 				rs.getString("lvaName"),
 				emptyList(),
 				URI(rs.getString("url"))
+			))
+
+			val lecturer = rs.getString("lecturer")
+			if(lecturer != null) {
+				if(lecturerMap.containsKey(rs.getString("lvaNr"))) {
+					lecturerMap[rs.getString("lvaNr")]!!.add(lecturer)
+				} else {
+					lecturerMap[rs.getString("lvaNr")] = mutableListOf(lecturer)
+				}
+			}
+		}
+
+		val courses = mutableListOf<Course>()
+		tmpCourses.forEach {
+			courses.add(Course(
+				it.lvaType,
+				it.lvaNr,
+				it.semester,
+				it.lvaName,
+				lecturerMap[it.lvaNr] ?: emptyList(),
+				it.uri
 			))
 		}
 

@@ -246,12 +246,26 @@ class CommandManager : ListenerAdapter() {
 					return@Cmd
 				}
 
+				// Student with only the enrolled courses
+				val enrolledCourseIds = DatabaseManager.getStudentEnrollment()
+					.filter {p -> p.first == student.discordName}
+					.map { p -> p.second }
+					.toList()
+				val actualStudent = Student(
+					student.discordName,
+					student.discordName,
+					student.guildId,
+					student.courses.filter { c -> c.lvaNr in enrolledCourseIds },
+					student.studentId,
+					emptyList()
+				)
+
 				// Check if user is already enrolled in the course
 				val courseId = it.getOption("course-id")!!.asString.replace(".", "")
 				if (DatabaseManager.getStudentEnrollment()
-						.any { (dN, cId) -> dN == student.discordName && cId == courseId }
+						.any { (dN, cId) -> dN == actualStudent.discordName && cId == courseId }
 				) {
-					println("${student.discordName} already in course with ID $courseId")
+					println("${actualStudent.discordName} already in course with ID $courseId")
 					it.hook.sendMessageInfo("You already have access to this course!").queue()
 					return@Cmd
 				}
@@ -265,11 +279,11 @@ class CommandManager : ListenerAdapter() {
 				}
 
 				// Add course to student
-				val updatedStudent = student.addCourses(course)
-				updatedStudent.insertIntoDatabase()
+				val updatedStudent = actualStudent.addCourses(course)
 				updatedStudent.assignToCourses()
+				addStudentToCourseChannels(updatedStudent)
 
-				println("Enrolled ${student.discordName} in course ${course.lvaName}")
+				println("Enrolled ${actualStudent.discordName} in course ${course.lvaName}")
 				it.hook.sendMessageOK("You joined the course ${course.lvaName}").queue()
 			},
 			OptionData(OptionType.STRING, "course-id", "The course ID to join. E.g., 123.456", true)
@@ -290,12 +304,26 @@ class CommandManager : ListenerAdapter() {
 					return@Cmd
 				}
 
+				// Student with only the enrolled courses
+				val enrolledCourseIds = DatabaseManager.getStudentEnrollment()
+					.filter {p -> p.first == student.discordName}
+					.map { p -> p.second }
+					.toList()
+				val actualStudent = Student(
+					student.discordName,
+					student.discordName,
+					student.guildId,
+					student.courses.filter { c -> c.lvaNr in enrolledCourseIds },
+					student.studentId,
+					emptyList()
+				)
+
 				// Check if user is even enrolled in the course
 				val courseId = it.getOption("course-id")!!.asString.replace(".", "")
 				if (DatabaseManager.getStudentEnrollment()
-						.none { (dN, cId) -> dN == student.discordName && cId == courseId }
+						.none { (dN, cId) -> dN == actualStudent.discordName && cId == courseId }
 				) {
-					println("${student.discordName} not in a course with ID $courseId")
+					println("${actualStudent.discordName} not in a course with ID $courseId")
 					it.hook.sendMessageInfo("You are not in a course with that id!").queue()
 					return@Cmd
 				}
@@ -318,12 +346,12 @@ class CommandManager : ListenerAdapter() {
 				}
 
 				// Remove course enrollment from student
-				DatabaseManager.removeStudentFromCourseEnrollment(student, courseId)
+				DatabaseManager.removeStudentFromCourseEnrollment(actualStudent, courseId)
 
 				// Remove user from channel
 				removeStudentFromCourseChannel(it.member!!, channel)
 
-				println("Removed ${student.discordName} from course ${course.lvaName}")
+				println("Removed ${actualStudent.discordName} from course ${course.lvaName}")
 				it.hook.sendMessageOK("You left the course ${course.lvaName}").queue()
 			},
 			OptionData(OptionType.STRING, "course-id", "The course ID to join. E.g., 123.456", true)

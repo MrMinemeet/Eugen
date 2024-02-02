@@ -72,7 +72,8 @@ data class Student(
 			userToken,
 			guildId,
 			this.courses + courses.toList(),
-			studentId
+			studentId,
+			exams
 		)
 	}
 }
