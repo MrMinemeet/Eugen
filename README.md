@@ -1,5 +1,7 @@
 # Eugen
 
+<img src="images/eugen_banner.png" height="120" />
+
 Eugen is the successor to the sadly abandoned [Kilian](https://github.com/rechen-werk/Kilian) Discord Bot. After facing some issues with the old codebase, we decided to start from scratch and build a new bot in a more suited and modern language that is based on the JVM. Eugen is written in Kotlin instead of Python and should provide the same features and fix some issues that were present in Kilian.
 
 **So what does Eugen do?**
@@ -52,6 +54,7 @@ The `course-id` is the ID of the course.
 * Created channels under the `KUSSS` category are sorted by their name in ascending order.
 * Places KUSSS url into the channel topic.
 * No explicit `/ping` command in order to mention specific users. The roles are channel based and therefore a normal `@everyone` or `@here` inside the channel is sufficient.
+* No issue with API rate limits
 
 
 # How to get a working discord bot
@@ -72,3 +75,8 @@ The bot delivers all major dependencies in the form of a fat jar. The only requi
 3. Create a file called `managers.txt` and add your unique discord username (the name that replaced the `name#number`) to it.
 4. Set the previously received token as the environment variable `EUGEN_BOT_TOKEN`.g
 5. Start the bot by executing the downloaded `.jar` file with `java -jar eugen-<version>.jar`. This should start the bot and you should see Eugen being online in your server.
+
+# Future Plans
+* Notify new users about the bot's existence and how to use it. (See `send_user_join_info` branch)
+* Handle more than 50 courses, as the current limit is 50 channels per category. Solution: Split the courses into multiple same-sized categories.
+
