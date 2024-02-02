@@ -24,6 +24,7 @@ import util.sendMessageBotError
 import util.sendMessageInfo
 import util.sendMessageOK
 import util.sendMessageUserError
+import java.time.LocalDateTime
 import kotlin.concurrent.thread
 import kotlin.time.Duration.Companion.days
 
@@ -493,7 +494,9 @@ class CommandManager : ListenerAdapter() {
 			?: createCategory(guild, CATEGORY_NAME)
 		channelAction.setParent(category)
 
-		channelAction.setTopic(formatExamTopic(uri, nextExam))
+		if(nextExam?.date?.isAfter(LocalDateTime.now()) == true) {
+			channelAction.setTopic(formatExamTopic(uri, nextExam))
+		}
 
 		channelAction.addPermissionOverride(
 			guild.publicRole,
@@ -517,7 +520,9 @@ class CommandManager : ListenerAdapter() {
 			.find { it.name.contentEquals(name) }
 			?: createCourseChannel(guild, name, uri)
 
-		updateCourseTopic(channel, uri, nextExam)
+		if(nextExam.date.isAfter(LocalDateTime.now()) == true) {
+			updateCourseTopic(channel, uri, nextExam)
+		}
 	}
 
 	private fun formatExamTopic(uri: String, nextExam : Exam?) : String {
