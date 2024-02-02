@@ -24,6 +24,7 @@ Subscribes the user to the Eugen Service.
 
 ## /unkusss
 Unsubscribes the user from the Eugen Service. Furthermore, any user-specific data stored is deleted.
+<img src="images/unkusss.gif" width="600" />
 
 ## /matnr <@user>
 Retrieves the matriculation number of the user. This is only possible if the user is subscribed to the Eugen Service and stated their matriculation number.
@@ -38,10 +39,13 @@ Deletes the KUSSS category and all it's channels. **:rotating_light: This action
 ## /join \<course-id\>
 Allows the users to join a course channel they don't attend. This is useful for students who already passed the course but want to stay in the channel to help others.
 The `course-id` is the ID of the course.
+<img src="images/join.gif" width="600" />
 
 ## /leave \<course-id\>
 Allows the user to leave a course channel. This can be a channel they joined manually or a channel they were assigned to by Eugen.
 The `course-id` is the ID of the course.
+<img src="images/leave.gif" width="600" />
+
 
 # Differences to Kilian
 * `/reload` command to manually reload the calendar file and automatic reload every 24h.
