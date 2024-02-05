@@ -108,6 +108,12 @@ object Kusss {
 			.distinct()
 	}
 
+	/**
+	 * Returns a list of all [Exam]s for a given user token, returns only registered exams
+	 * @param userToken The user token of the user
+	 * @return A list of all [Exam]s for the given user token
+	 * @throws IllegalArgumentException If the provided token is a URL
+	 */
 	fun getExams(userToken: String, calendar: Calendar? = null): List<Exam?> {
 		if (userToken.isEmpty() || userToken.contains("http")) throw IllegalArgumentException("Invalid token provided")
 		return getExams(
@@ -131,6 +137,11 @@ object Kusss {
 			.distinct()
 	}
 
+	/**
+	 * Returns a list of all [Exam]s for a given KUSSS-iCal URL
+	 * @param uri The URL to get calendar from
+	 * @return A list of all [Exam]s for the given URL
+	 */
 	private fun getExams(uri: URI, calendar: Calendar? = null): List<Exam?> {
 		return (calendar ?: calendarFromKUSSS(uri)) // Use passed calendar if possible
 			.getComponents<CalendarComponent>()

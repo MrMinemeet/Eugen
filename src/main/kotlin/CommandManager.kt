@@ -451,7 +451,7 @@ class CommandManager : ListenerAdapter() {
 
 			val nextExam = student.exams.filter { exam -> exam?.lvaNr == course.lvaNr }.firstOrNull()
 
-			//set exam topic if next exam is in the future, remove exam topic if it is in the past
+			//add next exam to channel topic if exam is in the future, remove exam from channel topic if it is in the past
 			if (nextExam != null && nextExam.date.isAfter(LocalDateTime.now())) {
 				updateCourseTopic(channel, course.uri.toString(), nextExam)
 			} else if(nextExam != null){ //expired exam
