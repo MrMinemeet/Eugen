@@ -453,6 +453,8 @@ class CommandManager : ListenerAdapter() {
 
 			if (nextExam != null && nextExam.date.isAfter(LocalDateTime.now())) {
 				updateCourseTopic(channel, course.uri.toString(), nextExam)
+			} else if(nextExam != null){ //expired exam
+				updateCourseTopic(channel, course.uri.toString(), null)
 			}
 
 			// Add user to channel
@@ -514,17 +516,6 @@ class CommandManager : ListenerAdapter() {
 		println("Created channel ${channel.name}")
 		return channel
 	}
-
-	private fun createOrUpdateCourseChannel(guild: Guild, name: String, uri: String, nextExam : Exam) {
-		val channel = guild.textChannels
-			.find { it.name.contentEquals(name) }
-			?: createCourseChannel(guild, name, uri)
-
-		if(nextExam.date.isAfter(LocalDateTime.now()) == true) {
-			updateCourseTopic(channel, uri, nextExam)
-		}
-	}
-
 	private fun formatExamTopic(uri: String, nextExam : Exam?) : String {
 		if(nextExam == null) {
 			return "Links: [KUSSS]($uri)"
@@ -532,7 +523,6 @@ class CommandManager : ListenerAdapter() {
 		return "Links: [KUSSS]($uri), Next exam: $nextExam"
 	}
 	private fun updateCourseTopic(channel: TextChannel, uri: String, nextExam : Exam?) {
-		//TODO parse existing exam date and update if nextExam is earlier than currently present, delete if exam is in the past
 		channel.manager.setTopic(formatExamTopic(uri, nextExam)).queue()
 		println("Updated topic of channel ${channel.name}")
 	}
