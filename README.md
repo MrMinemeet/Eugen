@@ -79,6 +79,7 @@ The bot delivers all major dependencies in the form of a fat jar. The only requi
 # Future Plans
 * Notify new users about the bot's existence and how to use it. (See `send_user_join_info` branch)
 * Handle more than 50 courses, as the current limit is 50 channels per category. Solution: Split the courses into multiple same-sized categories.
+* Better handling of exam dates, currently simply parses the next exam date from users registered to the course, which causes issues if no user is registered to the exam.
 
 ---
 # Missing Semester
