@@ -9,6 +9,7 @@ import net.fortuna.ical4j.model.Component
 import net.fortuna.ical4j.model.Property
 import net.fortuna.ical4j.model.component.CalendarComponent
 import org.jsoup.Jsoup
+import java.time.LocalDate
 import java.util.Date
 
 object Kusss {
@@ -94,12 +95,21 @@ object Kusss {
 	 */
 	private fun getCourses(uri: URI, calendar: Calendar? = null): List<Course> {
 		val currentSemester = Semester.current()
-		return (calendar ?: calendarFromKUSSS(uri)) // Use passed calendar if possible
-			.getComponents<CalendarComponent>()
-			.filter { it.name.equals(Component.VEVENT) } // Filter out any other entries that are not a EVENT
-			.map { calendarComponentToCourse(it.getProperties()) }
-			.filter { it.semester == currentSemester } // Filter out courses that are not in the current semester
-			.distinct()
+		//count February as both semesters
+		if(LocalDate.now().monthValue == 2) {
+			return (calendar ?: calendarFromKUSSS(uri)) // Use passed calendar if possible
+				.getComponents<CalendarComponent>()
+				.filter { it.name.equals(Component.VEVENT) } // Filter out any other entries that are not a EVENT
+				.map { calendarComponentToCourse(it.getProperties()) }
+				.distinct()
+		} else {
+			return (calendar ?: calendarFromKUSSS(uri)) // Use passed calendar if possible
+				.getComponents<CalendarComponent>()
+				.filter { it.name.equals(Component.VEVENT) } // Filter out any other entries that are not a EVENT
+				.map { calendarComponentToCourse(it.getProperties()) }
+				.filter { it.semester == currentSemester } // Filter out courses that are not in the current semester
+				.distinct()
+		}
 	}
 
 	fun getExams(userToken: String, calendar: Calendar? = null): List<Exam?> {
