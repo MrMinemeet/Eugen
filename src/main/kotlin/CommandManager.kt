@@ -451,7 +451,7 @@ class CommandManager : ListenerAdapter() {
 
 			val nextExam = student.exams.filter { exam -> exam?.lvaNr == course.lvaNr }.firstOrNull()
 
-			if (nextExam != null) {
+			if (nextExam != null && nextExam.date.isAfter(LocalDateTime.now())) {
 				updateCourseTopic(channel, course.uri.toString(), nextExam)
 			}
 
