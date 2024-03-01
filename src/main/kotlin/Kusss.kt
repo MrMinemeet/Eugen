@@ -125,7 +125,8 @@ object Kusss {
 		if (userToken.isEmpty() || userToken.contains("http")) throw IllegalArgumentException("Invalid token provided")
 		return getExams(
 			URI("https://www.kusss.jku.at/kusss/published-calendar.action?token=${userToken}&lang=de"),
-			calendar
+			calendar,
+			course
 		)
 	}
 	private fun getExams(uri: URI, calendar: Calendar? = null, course : Course): List<Exam?> {
