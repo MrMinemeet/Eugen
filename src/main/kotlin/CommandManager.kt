@@ -446,7 +446,10 @@ class CommandManager : ListenerAdapter() {
 		for(course in student.courses) {
 			val channelName = channelNameFrom(course.lvaName)
 			val channel = guild.textChannels
+				// Filter for channels in CATEGORY_NAME category and then if the name matches
+				.filter { it.parentCategory != null && it.parentCategory!!.name == CATEGORY_NAME }
 				.find { it.name.contentEquals(channelName) }
+				// If not found, create new channel
 				?: createCourseChannel(guild, channelName, course.uri.toString())
 
 			val nextExam = student.exams.firstOrNull { exam -> exam?.lvaNr == course.lvaNr }
