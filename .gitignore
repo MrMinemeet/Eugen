@@ -40,3 +40,6 @@ bin/
 
 # Database
 *.db
+
+# Eugen Specific
+managers.txt
