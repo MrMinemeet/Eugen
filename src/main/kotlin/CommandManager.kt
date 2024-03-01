@@ -491,10 +491,11 @@ class CommandManager : ListenerAdapter() {
 	 * @param name The name of the channel
 	 */
 	private fun createCourseChannel(guild: Guild, name: String, uri: String = "", nextExam: Exam? = null): TextChannel {
-		val channelAction = guild.createTextChannel(name)
 		val category = guild.categories
 			.find { it.name == CATEGORY_NAME }
 			?: createCategory(guild, CATEGORY_NAME)
+
+		val channelAction = guild.createTextChannel(name)
 		channelAction.setParent(category)
 
 		if(nextExam?.date?.isAfter(LocalDateTime.now()) == true) {
