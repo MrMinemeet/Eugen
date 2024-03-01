@@ -17,15 +17,23 @@ object Eugen {
 	val devMode: Boolean
 		get() = true
 
-	val client: JDA = JDABuilder
-		.createDefault(System.getenv("EUGEN_BOT_TOKEN"))
-		.setStatus(OnlineStatus.ONLINE)
-		.setMemberCachePolicy(MemberCachePolicy.ALL)
-		.setActivity(Activity.watching("money"))
-		.enableCache(CacheFlag.ONLINE_STATUS)
-		.setChunkingFilter(ChunkingFilter.ALL)
-		.enableIntents(GatewayIntent.GUILD_MESSAGES, GatewayIntent.GUILD_MEMBERS, GatewayIntent.GUILD_PRESENCES)
-		.build()
+	val client: JDA = try {
+		JDABuilder
+			.createDefault(System.getenv("EUGEN_BOT_TOKEN"))
+			.setStatus(OnlineStatus.ONLINE)
+			.setMemberCachePolicy(MemberCachePolicy.ALL)
+			.setActivity(Activity.watching("money"))
+			.enableCache(CacheFlag.ONLINE_STATUS)
+			.setChunkingFilter(ChunkingFilter.ALL)
+			.enableIntents(GatewayIntent.GUILD_MESSAGES, GatewayIntent.GUILD_MEMBERS, GatewayIntent.GUILD_PRESENCES)
+			.build()
+	} catch (e: Exception) {
+		if (System.getenv("EUGEN_BOT_TOKEN") == null) {
+			throw RuntimeException("'EUGEN_BOT_TOKEN' environment variable is not set")
+		}
+
+		throw RuntimeException("Failed to start bot", e)
+	}
 
 	/// List of managers that are allowed to control crucial functions (e.g, /sleep) of the bot
 	private val manager = File("managers.txt").readLines()
