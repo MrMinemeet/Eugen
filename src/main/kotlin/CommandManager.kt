@@ -338,7 +338,7 @@ class CommandManager : ListenerAdapter() {
 				}
 
 				// Get course channel
-				val channelName = course.lvaName.replace(" ", "-").lowercase()
+				val channelName = channelNameFrom(course.lvaName)
 				val channel = guild.textChannels.find { c -> c.name == channelName }
 				if(channel == null) {
 					println("Could not find channel with name $channelName")
@@ -444,12 +444,12 @@ class CommandManager : ListenerAdapter() {
 			?: throw IllegalStateException("Could not find user with name '${student.discordName}'")
 
 		for(course in student.courses) {
-			val channelName = course.lvaName.replace(" ", "-").lowercase()
+			val channelName = channelNameFrom(course.lvaName)
 			val channel = guild.textChannels
 				.find { it.name.contentEquals(channelName) }
 				?: createCourseChannel(guild, channelName, course.uri.toString())
 
-			val nextExam = student.exams.filter { exam -> exam?.lvaNr == course.lvaNr }.firstOrNull()
+			val nextExam = student.exams.firstOrNull { exam -> exam?.lvaNr == course.lvaNr }
 
 			//add next exam to channel topic if exam is in the future, remove exam from channel topic if it is in the past
 			if (nextExam != null && nextExam.date.isAfter(LocalDateTime.now())) {
@@ -501,11 +501,6 @@ class CommandManager : ListenerAdapter() {
 			channelAction.setTopic(formatExamTopic(uri, nextExam))
 		}
 
-		channelAction.addPermissionOverride(
-			guild.publicRole,
-			emptyList(),
-			listOf(Permission.VIEW_CHANNEL)
-		)
 		//set channel private
 		channelAction.addPermissionOverride(
 			guild.publicRole,
@@ -615,4 +610,9 @@ class CommandManager : ListenerAdapter() {
 	 * @return The student with the given name. May be null if no student with the given name exists
 	 */
 	private fun getStudentFromName(name: String) = DatabaseManager.getStudents().find { s -> s.discordName == name }
+
+	private fun channelNameFrom(lvaName: String) = lvaName
+		.lowercase()
+		.replace(" ", "-")
+		.replace("#", "sharp")
 }
