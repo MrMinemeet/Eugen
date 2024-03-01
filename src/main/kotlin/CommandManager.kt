@@ -29,6 +29,7 @@ import kotlin.concurrent.thread
 import kotlin.time.Duration.Companion.days
 
 const val CATEGORY_NAME: String = "KUSSS"
+const val ROLE_NAME: String = "KUSSS"
 
 class CommandManager : ListenerAdapter() {
 
@@ -117,7 +118,7 @@ class CommandManager : ListenerAdapter() {
 
 
 				//remove KUSSS role
-				val role = guild.roles.find { role -> role.name == "KUSSS" }
+				val role = guild.roles.find { role -> role.name == ROLE_NAME }
 				if (role != null) {
 					guild.removeRoleFromMember(it.user, role).queue()
 					println("Removed user from role ${role.name}")
@@ -541,7 +542,7 @@ class CommandManager : ListenerAdapter() {
 	}
 
 	/**
-	 * Adds the user to the KUSSS role
+	 * Adds the user to the [ROLE_NAME] role
 	 * @param student The student to add to the role
 	 * @throws IllegalStateException If the guild or role does not exist
 	 */
@@ -552,25 +553,24 @@ class CommandManager : ListenerAdapter() {
 			?: throw IllegalStateException("Could not find guild by ID ${student.guildId}")
 
 		// Check and create KUSSS role if not existing
-		var role = guild.roles.find { it.name == CATEGORY_NAME }
+		var role = guild.roles.find { it.name == ROLE_NAME }
 		if (role == null) {
-			println("Creating KUSSS role on ${guild.name}")
+			println("Creating $ROLE_NAME role on ${guild.name}")
 			val roleAction = guild.createRole()
-			roleAction.setName(CATEGORY_NAME)
+			roleAction.setName(ROLE_NAME)
 			roleAction.setColor(Color.ORANGE)
-			roleAction.queue()
 			role = roleAction.complete()
 		}
 
 		if (role == null) {
-			throw IllegalStateException("KUSSS role does not exist on ${guild.name} and could not be created!")
+			throw IllegalStateException("$ROLE_NAME role does not exist on ${guild.name} and could not be created!")
 		}
 		val user = Eugen.client
 			.getUsersByName(student.discordName, true).firstOrNull()
 			?: throw IllegalStateException("Could not find user with name '${student.discordName}'")
 
 		guild.addRoleToMember(user, role).queue()
-		println("${student.discordName} added to role ${role.name} on ${guild.name}")
+		println("${student.discordName} added to role $ROLE_NAME on ${guild.name}")
 	}
 
 	/**
