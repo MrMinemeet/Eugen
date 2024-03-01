@@ -615,8 +615,13 @@ class CommandManager : ListenerAdapter() {
 	 */
 	private fun getStudentFromName(name: String) = DatabaseManager.getStudents().find { s -> s.discordName == name }
 
-	private fun channelNameFrom(lvaName: String) = lvaName
-		.lowercase()
-		.replace(" ", "-")
-		.replace("#", "sharp")
+	private fun channelNameFrom(lvaName: String): String {
+		val channelName =  lvaName
+			.lowercase()
+			.replace(" ", "-")
+			.replace("#", "sharp")
+
+		return if (channelName.length < 100) channelName else "${channelName.substring(98)}…"
+	}
+
 }
