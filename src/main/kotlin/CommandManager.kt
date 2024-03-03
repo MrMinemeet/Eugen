@@ -377,7 +377,12 @@ class CommandManager : ListenerAdapter() {
 			return
 		}
 
-		cmd.onEvent(event)
+		try {
+			cmd.onEvent(event)
+		} catch (e: Exception) {
+			// Catch any other exception and respond if the cmd itself didn't handle it
+			event.hook.sendMessageBotError("Something went very wrong!")
+		}
 	}
 
 	/**
