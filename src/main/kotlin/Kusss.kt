@@ -30,7 +30,7 @@ object Kusss {
 				.substringBefore("&")
 
 			val pair = Pair(
-				it.select("b")[1].childNodes()[0].toString(),
+				Util.fixLvaName(it.select("b")[1].childNodes()[0].toString()),
 				URI(
 					"https://kusss.jku.at/kusss/" + it.select("a")[0].attr("href").trim()
 				)
@@ -263,7 +263,7 @@ object Kusss {
 		val locationIndex = props.indexOfFirst { it.name == Property.LOCATION }
 
 		val locationName : String
-		if(locationIndex != -1) {
+		if (locationIndex != -1) {
 			locationName = props[locationIndex].value.trim()
 		} else {
 			locationName = "Unknown"
@@ -302,7 +302,7 @@ object Kusss {
 	private fun getLvaKusssInfo(lvaNr: String, curLvaName: String): Pair<String, URI> {
 		// Get course with matching lvaNr
 		val (name, uri) = allLVAs[lvaNr] ?: return Pair(curLvaName, getUnknownCourseURL(lvaNr))
-		val fixedName = fixLVAName(name)
+		val fixedName = Util.fixLvaName(name)
 
 		if (!fixedName.lowercase().contains("special topic")) {
 			// Not a special topic, no further processing to do
@@ -338,18 +338,7 @@ object Kusss {
 		val courseName = courseTableRows[0].select("td")[0].text()
 			.substringAfter("Untertitel:").substringBefore("Zusatzinfo:").trim()
 
-		return Pair(fixLVAName(courseName), uri)
-	}
-
-	/**
-	 * Fixes some names by replacing "&" with "and" and so on
-	 * @param originalName The original name of the course
-	 * @return The fixed name of the course
-	 */
-	private fun fixLVAName(originalName: String): String {
-		return originalName
-			.replace("&", "and")
-			.replace("/", "-")
+		return Pair(Util.fixLvaName(courseName), uri)
 	}
 
 	private fun getUnknownCourseURL(lvaNr: String): URI {

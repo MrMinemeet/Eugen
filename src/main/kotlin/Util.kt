@@ -84,6 +84,27 @@ object Util {
 	}
 
 	/**
+	 * Fixes some names by replacing certain characters.
+	 * @param originalName The original name of the course
+	 * @return The fixed name of the course
+	 */
+	fun fixLvaName(originalName: String, limitLength: Boolean = false): String {
+		val channelName = originalName
+			.lowercase()
+			.replace("&amp;", "and")
+			.replace("&", "and")
+			.replace("/", "-")
+			.replace(" ", "-")
+			.replace("#", "sharp")
+			.replace(".", "dot")
+			.replace("'", "")
+
+		return if (limitLength && channelName.length >= 100)
+			"${channelName.substring(98)}…"
+		else
+			channelName
+	}
+	/**
 	 * Cache entry for a request
 	 * @param response The response of the request
 	 * @param timestamp The timestamp of the request
