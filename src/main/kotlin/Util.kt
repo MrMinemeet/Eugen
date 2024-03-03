@@ -100,7 +100,7 @@ object Util {
 			.replace("'", "")
 
 		return if (limitLength && channelName.length >= 100)
-			"${channelName.substring(98)}…"
+			"${channelName.substring(0, 98)}…"
 		else
 			channelName
 	}
