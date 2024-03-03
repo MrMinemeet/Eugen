@@ -94,11 +94,12 @@ object Util {
 			.replace("&amp;", "and")
 			.replace("&", "and")
 			.replace("/", "-")
-			.replace(" ", "-")
 			.replace("#", "sharp")
 			.replace(".", "dot")
 			.replace("'", "")
 			.replace(":", "")
+			.replace(" ", "-")
+			.replace("--", "-")
 
 		return if (limitLength && channelName.length >= 100)
 			"${channelName.substring(0, 98)}…"
