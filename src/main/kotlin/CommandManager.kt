@@ -4,6 +4,7 @@ import java.awt.Color
 import java.net.URI
 import java.net.URISyntaxException
 import java.sql.SQLException
+import java.time.LocalDateTime
 import net.dv8tion.jda.api.Permission
 import net.dv8tion.jda.api.entities.Guild
 import net.dv8tion.jda.api.entities.Member
@@ -24,7 +25,6 @@ import util.sendMessageBotError
 import util.sendMessageInfo
 import util.sendMessageOK
 import util.sendMessageUserError
-import java.time.LocalDateTime
 import kotlin.concurrent.thread
 import kotlin.time.Duration.Companion.days
 
@@ -339,7 +339,7 @@ class CommandManager : ListenerAdapter() {
 				}
 
 				// Get course channel
-				val channelName = channelNameFrom(course.lvaName)
+				val channelName = Util.fixLvaName(course.lvaName, true)
 				val channel = guild.textChannels.find { c -> c.name == channelName }
 				if(channel == null) {
 					println("Could not find channel with name $channelName")
@@ -450,7 +450,7 @@ class CommandManager : ListenerAdapter() {
 			?: throw IllegalStateException("Could not find user with name '${student.discordName}'")
 
 		for(course in student.courses) {
-			val channelName = channelNameFrom(course.lvaName)
+			val channelName = Util.fixLvaName(course.lvaName, true)
 			val channel = guild.textChannels
 				// Filter for channels in CATEGORY_NAME category and then if the name matches
 				.filter { it.parentCategory != null && it.parentCategory!!.name == CATEGORY_NAME }
@@ -624,16 +624,4 @@ class CommandManager : ListenerAdapter() {
 	 * @return The student with the given name. May be null if no student with the given name exists
 	 */
 	private fun getStudentFromName(name: String) = DatabaseManager.getStudents().find { s -> s.discordName == name }
-
-	private fun channelNameFrom(lvaName: String): String {
-		val channelName =  lvaName
-			.lowercase()
-			.replace(" ", "-")
-			.replace("#", "sharp")
-			.replace(".", "dot")
-			.replace("'", "")
-
-		return if (channelName.length < 100) channelName else "${channelName.substring(98)}…"
-	}
-
 }
