@@ -608,6 +608,11 @@ class CommandManager : ListenerAdapter() {
 		val channels = category.textChannels
 		val sortedChannels = channels.sortedBy { it.name }
 
+		if (channels == sortedChannels) {
+			println("Skipping channel sorting")
+			return
+		}
+
 		sortedChannels.forEachIndexed { index, channel ->
 			channel.manager.setPosition(index).queue().let { println("Moved ${channel.name} to position $index") }
 		}
