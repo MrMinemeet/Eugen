@@ -5,7 +5,7 @@ plugins {
 
 
 group = "org.example"
-version = "0.5-inDev"
+version = "0.6-inDev"
 
 repositories {
     mavenCentral()
