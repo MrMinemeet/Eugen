@@ -630,6 +630,8 @@ class CommandManager : ListenerAdapter() {
 			.lowercase()
 			.replace(" ", "-")
 			.replace("#", "sharp")
+			.replace(".", "dot")
+			.replace("'", "")
 
 		return if (channelName.length < 100) channelName else "${channelName.substring(98)}…"
 	}
