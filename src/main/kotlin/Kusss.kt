@@ -304,7 +304,7 @@ object Kusss {
 		val (name, uri) = allLVAs[lvaNr] ?: return Pair(curLvaName, getUnknownCourseURL(lvaNr))
 		val fixedName = Util.fixLvaName(name)
 
-		if (!fixedName.lowercase().contains("special topic")) {
+		if (!fixedName.lowercase().contains("special-topic")) {
 			// Not a special topic, no further processing to do
 			return Pair(fixedName, uri)
 		}
