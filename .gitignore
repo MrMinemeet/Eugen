@@ -43,3 +43,6 @@ bin/
 
 # Eugen Specific
 managers.txt
+
+# Others
+*.bak
