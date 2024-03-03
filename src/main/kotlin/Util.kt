@@ -98,6 +98,7 @@ object Util {
 			.replace("#", "sharp")
 			.replace(".", "dot")
 			.replace("'", "")
+			.replace(":", "")
 
 		return if (limitLength && channelName.length >= 100)
 			"${channelName.substring(0, 98)}…"
