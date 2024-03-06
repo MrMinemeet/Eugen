@@ -2,7 +2,6 @@ import java.io.BufferedReader
 import java.io.IOException
 import java.io.InputStreamReader
 import java.net.URI
-import java.net.URL
 import java.util.*
 import javax.net.ssl.HttpsURLConnection
 import kotlin.concurrent.thread
@@ -10,8 +9,19 @@ import kotlin.time.Duration.Companion.hours
 
 
 object Util {
+	private val SHRINK_CACHE_DELAY = 12.hours.inWholeMilliseconds // 12h cache shrink delay
 	private val CACHE_TTL: Long = 4.hours.inWholeMilliseconds // 4h of cache time
 	private val requestCache: MutableMap<URI, CachedResponse> = mutableMapOf()
+
+	init {
+		// Thread to shrink cache every 12h
+		thread(start = true, isDaemon = true, name = "Cache Shrinking Thread") {
+			while(true) {
+				shrinkCache()
+				Thread.sleep(SHRINK_CACHE_DELAY)
+			}
+		}
+	}
 
 	/**
 	 * Reads the content of a URI as a string
@@ -20,21 +30,20 @@ object Util {
 	 * @return The content of the URI as a string
 	 */
 	fun readTextFromURL(uri: URI): String {
-		if (requestCache.containsKey(uri) &&
-			requestCache.getValue(uri).timestamp + CACHE_TTL > System.currentTimeMillis()
-		) {
-			// Cache was valid -> reuse response
-			return requestCache.getValue(uri).response
-		}
+		val response = synchronized(requestCache) {
+			if (requestCache.containsKey(uri) &&
+				requestCache.getValue(uri).timestamp + CACHE_TTL > System.currentTimeMillis()
+			) {
+				// Cache was valid -> reuse response
+				return requestCache.getValue(uri).response
+			}
 
-		// Shrink cache to remove old entries
-		thread(start = true, isDaemon = true, name = "Cache Shrinking Thread") {
-			shrinkCache()
-		}
+			// Create new Request, cache it and return response
+			val response = makeRequest(uri)
+			requestCache[uri] = CachedResponse(response, System.currentTimeMillis())
 
-		// Create new Request, cache it and return response
-		val response = makeRequest(uri)
-		requestCache[uri] = CachedResponse(response, System.currentTimeMillis())
+			response
+		}
 		return response
 	}
 
@@ -68,7 +77,12 @@ object Util {
 	 */
 	private fun shrinkCache() {
 		val now = System.currentTimeMillis()
-		requestCache.entries.removeIf { it.value.timestamp + CACHE_TTL < now }
+		val oldCacheCount = synchronized(requestCache) {
+			val oldCacheCount = requestCache.count()
+			requestCache.entries.removeIf { it.value.timestamp + CACHE_TTL < now }
+			oldCacheCount
+		}
+		println("Request Cache cleaned. Removed ${oldCacheCount- requestCache.count()} elements")
 	}
 
 	/**
