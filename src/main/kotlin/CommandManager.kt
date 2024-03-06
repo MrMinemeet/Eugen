@@ -470,7 +470,7 @@ class CommandManager : ListenerAdapter() {
 				updateCourseTopic(channel, course.uri.toString(), null)
 			}
 
-			if (!channel.members.contains(guildMember)) {
+			if (channel.members.contains(guildMember)) {
 				// Skip, user is already added to course
 				println("${student.discordName} already assigned to channel ${channel.name}")
 			} else {
