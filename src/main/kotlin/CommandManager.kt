@@ -94,6 +94,9 @@ class CommandManager : ListenerAdapter() {
 					return@Cmd
 				}
 
+				// Sort channels
+				Eugen.client.getGuildById(student.guildId)?.let { it1 -> sortChannels(it1) }
+
 				// TODO: Do more
 				// After doing stuff, "update" message (can be sent up to 15 min after initial command)
 				it.hook.sendMessageOK("You are now subscribed to the Eugen Service").queue()
@@ -480,8 +483,6 @@ class CommandManager : ListenerAdapter() {
 			}
 		}
 
-		sortChannels(guild)
-
 		println("All channels for ${student.discordName} queued!")
 	}
 
@@ -609,6 +610,12 @@ class CommandManager : ListenerAdapter() {
 			addUserToKusssRole(it)
 			addStudentToCourseChannels(it)
 		}
+
+		// Perform channel sorting for each guild once
+		students.map { it.guildId }
+			.distinct()
+			.mapNotNull { Eugen.client.getGuildById(it) }
+			.forEach { sortChannels(it) }
 	}
 
 	/**
