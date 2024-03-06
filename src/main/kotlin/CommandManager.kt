@@ -467,12 +467,17 @@ class CommandManager : ListenerAdapter() {
 				updateCourseTopic(channel, course.uri.toString(), null)
 			}
 
-			// Add user to channel
-			channel.manager.putPermissionOverride(
-				guildMember,
-				listOf(Permission.VIEW_CHANNEL, Permission.MESSAGE_SEND),
-				emptyList()
-			).queue().let {	println("Assigned ${student.discordName} to channel ${channel.name}") }
+			if (!channel.members.contains(guildMember)) {
+				// Skip, user is already added to course
+				println("${student.discordName} already assigned to channel ${channel.name}")
+			} else {
+				// Add user to channel
+				channel.manager.putPermissionOverride(
+					guildMember,
+					listOf(Permission.VIEW_CHANNEL, Permission.MESSAGE_SEND),
+					emptyList()
+				).queue().let { println("Assigned ${student.discordName} to channel ${channel.name}") }
+			}
 		}
 
 		sortChannels(guild)
@@ -529,8 +534,13 @@ class CommandManager : ListenerAdapter() {
 		return "Links: [KUSSS]($uri), Next exam: $nextExam"
 	}
 	private fun updateCourseTopic(channel: TextChannel, uri: String, nextExam : Exam?) {
-		channel.manager.setTopic(formatExamTopic(uri, nextExam)).queue()
-		println("Updated topic of channel ${channel.name}")
+		val examTopic = formatExamTopic(uri, nextExam);
+		if (channel.topic == examTopic) {
+			println("Topic of channel ${channel.name} already up-to-date.")
+		} else {
+			channel.manager.setTopic(examTopic).queue()
+			println("Updated topic of channel ${channel.name}")
+		}
 	}
 
 	/**
@@ -573,6 +583,12 @@ class CommandManager : ListenerAdapter() {
 		val user = Eugen.client
 			.getUsersByName(student.discordName, true).firstOrNull()
 			?: throw IllegalStateException("Could not find user with name '${student.discordName}'")
+
+		val usersWithKusssRole = guild.findMembersWithRoles(role).get()
+		if (usersWithKusssRole.any { it.user == user }) {
+			println("${student.discordName} already in role $ROLE_NAME on ${guild.name}")
+			return
+		}
 
 		guild.addRoleToMember(user, role).queue()
 		println("${student.discordName} added to role $ROLE_NAME on ${guild.name}")
