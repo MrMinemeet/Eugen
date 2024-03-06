@@ -7,6 +7,7 @@ import net.dv8tion.jda.api.requests.GatewayIntent
 import net.dv8tion.jda.api.utils.ChunkingFilter
 import net.dv8tion.jda.api.utils.MemberCachePolicy
 import net.dv8tion.jda.api.utils.cache.CacheFlag
+import java.io.FileNotFoundException
 
 object Eugen {
 	/**
@@ -36,7 +37,12 @@ object Eugen {
 	}
 
 	/// List of managers that are allowed to control crucial functions (e.g, /sleep) of the bot
-	private val manager = File("managers.txt").readLines()
+	private val manager = try {
+		File("managers.txt").readLines()
+	} catch(e: FileNotFoundException) {
+		println("No 'managers.txt' file found")
+		listOf()
+	}
 
 	/**
 	 * Checks if the given name is a manager
