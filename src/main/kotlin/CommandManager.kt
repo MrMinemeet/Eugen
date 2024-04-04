@@ -10,15 +10,20 @@ import net.dv8tion.jda.api.entities.Guild
 import net.dv8tion.jda.api.entities.Member
 import net.dv8tion.jda.api.entities.channel.concrete.Category
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel
+import net.dv8tion.jda.api.entities.emoji.Emoji
 import net.dv8tion.jda.api.events.guild.GuildReadyEvent
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
+import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent
 import net.dv8tion.jda.api.events.session.ReadyEvent
 import net.dv8tion.jda.api.hooks.ListenerAdapter
 import net.dv8tion.jda.api.interactions.commands.OptionType
 import net.dv8tion.jda.api.interactions.commands.build.Commands
 import net.dv8tion.jda.api.interactions.commands.build.OptionData
+import net.dv8tion.jda.api.interactions.components.buttons.Button
 import net.dv8tion.jda.api.requests.restaction.CommandListUpdateAction
+import util.StatusEmoji
 import util.replyBotError
+import util.replyInfo
 import util.replyOK
 import util.replyUserError
 import util.sendMessageBotError
@@ -30,10 +35,9 @@ import kotlin.time.Duration.Companion.days
 
 const val CATEGORY_NAME: String = "KUSSS"
 const val ROLE_NAME: String = "KUSSS"
+const val DEL_KUSSS_PREFIX: String = "delete_kusss_"
 
 class CommandManager : ListenerAdapter() {
-
-
 	private val cmdList = listOf(
 		Cmd("sleep",
 			"Brings Eugen to a peaceful sleep.",
@@ -216,24 +220,17 @@ class CommandManager : ListenerAdapter() {
 					return@Cmd
 				}
 
-				it.deferReply().queue()
-				val category  = it.guild!!.categories.find { category -> category.name == CATEGORY_NAME }
-				if (category == null) {
-					// Does not exist
-					println("Category $CATEGORY_NAME does not exist")
-					it.hook.sendMessageInfo("Category $CATEGORY_NAME does not exist").queue()
-					return@Cmd
-				}
-
-				// Remove all channels in category
-				category.textChannels.forEach { channel ->
-					channel.delete().queue().let { println("Deleted channel ${channel.name}") }
-				}
-
-				// Remove category
-				category.delete().complete()
-				println("Deleted category ${category.name}")
-				it.hook.sendMessageOK("Deleted category ${category.name} and it's channels").queue()
+				// Send message to ask if the user really wants to perform the action
+				it.reply("""
+					Do you really want to delete all KUSSS-related channels?
+					
+					🚨 This cannot be undone 🚨
+					""".trimIndent())
+					.addActionRow(
+						Button.danger("${DEL_KUSSS_PREFIX}confirm", Emoji.fromUnicode("\uD83D\uDD25")),
+						Button.secondary("${DEL_KUSSS_PREFIX}abort", "Abort")
+					).queue()
+				return@Cmd
 			}
 		),
 
@@ -385,6 +382,59 @@ class CommandManager : ListenerAdapter() {
 		} catch (e: Exception) {
 			// Catch any other exception and respond if the cmd itself didn't handle it
 			event.hook.sendMessageBotError("Something went very wrong!")
+		}
+	}
+
+	/**
+	 * Pass button interactions to the corresponding handler
+	 */
+	override fun onButtonInteraction(event: ButtonInteractionEvent) {
+		when {
+			event.componentId.startsWith(DEL_KUSSS_PREFIX) -> handleDeleteKusssButtonInteraction(event)
+			else -> println("Unknown button interaction!")
+		}
+	}
+
+	/**
+	 * Handles the button interactions for the delete KUSSS button
+	 * @param event The button interaction event
+	 */
+	private fun handleDeleteKusssButtonInteraction(event: ButtonInteractionEvent) {
+		if (!Eugen.isManager(event.user.name)) {
+			return // No manager, no need to handle this further
+		}
+		// Drop Buttons
+		event.message.editMessageComponents().queue()
+		when (event.componentId) {
+			"${DEL_KUSSS_PREFIX}confirm" -> {
+				val category = event.guild!!.categories.find { category -> category.name == CATEGORY_NAME }
+				if (category == null) {
+					// Does not exist
+					println("Category $CATEGORY_NAME does not exist")
+					event.hook.sendMessageInfo("Category $CATEGORY_NAME does not exist").queue()
+					return
+				}
+
+				// Remove all channels in category
+				category.textChannels.forEach { channel ->
+					channel.delete().queue().let { println("Deleted channel ${channel.name}") }
+				}
+
+				// Remove category
+				event.editMessage("""
+					${StatusEmoji.OK} Deleted category ${category.name} and it's channels
+					https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbDI4cmg1c3J3bThwdGUxaGd2eHJ3dzhoc2h0dXVxZHdrNHBicDM3ZSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/TxlxkVvdWfdRK/giphy.gif
+				""".trimMargin()).queue()
+				println("Deleted category ${category.name}")
+			}
+			"${DEL_KUSSS_PREFIX}abort" -> {
+				event.message.editMessageComponents().queue()
+				event.editMessage("${StatusEmoji.OK} Aborted deletion of KUSSS-related channels").queue()
+				println("Aborted deletion of KUSSS-related channels")
+			}
+			else -> {
+				println("Unknown button interaction for prefix ${DEL_KUSSS_PREFIX}!")
+			}
 		}
 	}
 
