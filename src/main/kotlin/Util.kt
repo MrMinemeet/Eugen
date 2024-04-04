@@ -111,6 +111,7 @@ object Util {
 			.replace("#", "sharp")
 			.replace(".", "dot")
 			.replace("'", "")
+			.replace(",","")
 			.replace(":", "")
 			.replace(" ", "-")
 			.replace("--", "-")
