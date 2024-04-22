@@ -16,7 +16,7 @@ dependencies {
     implementation("org.slf4j:slf4j-api:2.0.13")
     implementation("org.mnode.ical4j:ical4j:4.0.0-rc5")
     implementation("org.jsoup:jsoup:1.17.2")
-    implementation("net.dv8tion:JDA:5.0.0-beta.22") {
+    implementation("net.dv8tion:JDA:5.0.0-beta.23") {
         exclude(module = "opus-java")
     }
 }
