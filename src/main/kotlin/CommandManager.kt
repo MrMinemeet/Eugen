@@ -180,7 +180,7 @@ class CommandManager : ListenerAdapter() {
 
 				//Get MatNr
 				val matNr = DatabaseManager.getStudentId(discordName)
-				if (matNr == 0) {
+				if (matNr == -1) {
 					it.hook.sendMessageOK("Sorry, I was unable to find a matriculation number for the given user").queue()
 				} else {
 					it.hook.sendMessageOK("Here is the matriculation number: `$matNr`").queue()
