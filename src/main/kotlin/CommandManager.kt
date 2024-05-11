@@ -21,15 +21,7 @@ import net.dv8tion.jda.api.interactions.commands.build.Commands
 import net.dv8tion.jda.api.interactions.commands.build.OptionData
 import net.dv8tion.jda.api.interactions.components.buttons.Button
 import net.dv8tion.jda.api.requests.restaction.CommandListUpdateAction
-import util.StatusEmoji
-import util.replyBotError
-import util.replyInfo
-import util.replyOK
-import util.replyUserError
-import util.sendMessageBotError
-import util.sendMessageInfo
-import util.sendMessageOK
-import util.sendMessageUserError
+import util.*
 import kotlin.concurrent.thread
 import kotlin.time.Duration.Companion.days
 
@@ -63,7 +55,7 @@ class CommandManager : ListenerAdapter() {
 					else
 						URI(urlStr)
 				} catch (ex: URISyntaxException) {
-					println("URL could not be parsed: ${ex.message}")
+					Logger.warn("URL could not be parsed: ${ex.message}")
 					it.hook.sendMessageUserError("Not a valid URI!").queue()
 					return@Cmd
 				}
@@ -72,7 +64,7 @@ class CommandManager : ListenerAdapter() {
 					val matNrStr = it.getOption("mat-nr")
 					matNrStr?.asInt ?: -1
 				} catch (ex: Exception) {
-					println("MatNr could not be parsed: ${ex.message}")
+					Logger.warn("MatNr could not be parsed: ${ex.message}")
 					it.hook.sendMessageUserError("Not a valid matriculation number!")
 					return@Cmd
 				}
@@ -84,7 +76,7 @@ class CommandManager : ListenerAdapter() {
 
 					std
 				} catch (sqlEx: Exception) {
-					println("An error occurred while creating Student: ${sqlEx.message}")
+					Logger.error("An error occurred while creating Student: ${sqlEx.message}")
 					it.hook.sendMessageBotError("An internal error occurred while creating the database entry!").queue()
 					return@Cmd
 				}
@@ -93,7 +85,7 @@ class CommandManager : ListenerAdapter() {
 					addUserToKusssRole(student)
 					addStudentToCourseChannels(student)
 				} catch(ex: IllegalStateException) {
-					println("An error occurred while adding user to KUSSS role: ${ex.message}")
+					Logger.error("An error occurred while adding user to KUSSS role: ${ex.message}")
 					it.hook.sendMessageBotError("An internal error occurred while adding the user to the KUSSS role or while adding to the channels!").queue()
 					return@Cmd
 				}
@@ -118,7 +110,7 @@ class CommandManager : ListenerAdapter() {
 
 				// Check if student is even kusssed
 				if (DatabaseManager.getStudents().none { s -> s.discordName == it.user.name }) {
-					println("${it.user.name} not kusssed!")
+					Logger.info("${it.user.name} not kusssed!")
 					it.hook.sendMessageUserError("You are not registered to the Eugen Service!").queue()
 					return@Cmd
 				}
@@ -128,9 +120,9 @@ class CommandManager : ListenerAdapter() {
 				val role = guild.roles.find { role -> role.name == ROLE_NAME }
 				if (role != null) {
 					guild.removeRoleFromMember(it.user, role).queue()
-					println("Removed user from role ${role.name}")
+					Logger.info("Removed user from role ${role.name}")
 				} else {
-					println("KUSSS role does not exist on ${guild.name}")
+					Logger.info("KUSSS role does not exist on ${guild.name}")
 				}
 
 				// Remove from all text channels in category KUSSS
@@ -163,11 +155,11 @@ class CommandManager : ListenerAdapter() {
 						it.getOption("user")!!.asMember ?: throw IllegalArgumentException("Could not convert to Member")
 					member.user.name
 				} catch (ex: IllegalArgumentException) {
-					println("Could not retrieve member: ${ex.message}")
+					Logger.error("Could not retrieve member: ${ex.message}")
 					it.hook.sendMessageBotError("Could not retrieve mentioned user!")
 					return@Cmd
 				} catch (ex: NullPointerException) {
-					println("Could not retrieve username: ${ex.message}")
+					Logger.error("Could not retrieve username: ${ex.message}")
 					it.hook.sendMessageBotError("An internal error occurred!")
 					return@Cmd
 				}
@@ -203,7 +195,7 @@ class CommandManager : ListenerAdapter() {
 						return@Cmd
 					}
 				} catch (sqlEx: SQLException) {
-					println("Could not retrieve member: ${sqlEx.message}")
+					Logger.error("Could not retrieve member: ${sqlEx.message}")
 					it.hook.sendMessageBotError("Could not update entries!")
 					return@Cmd
 				}
@@ -243,7 +235,7 @@ class CommandManager : ListenerAdapter() {
 				// Check if user is subscribed to Eugen Service
 				val student = getStudentFromName(it.user.name)
 				if (student == null) {
-					println("${it.user.name} didn't use /kusss yet. Can't join course channel")
+					Logger.info("${it.user.name} didn't use /kusss yet. Can't join course channel")
 					it.hook.sendMessageUserError("Please use `/kusss` first").queue()
 					return@Cmd
 				}
@@ -267,7 +259,7 @@ class CommandManager : ListenerAdapter() {
 				if (DatabaseManager.getStudentEnrollment()
 						.any { (dN, cId) -> dN == actualStudent.discordName && cId == courseId }
 				) {
-					println("${actualStudent.discordName} already in course with ID $courseId")
+					Logger.info("${actualStudent.discordName} already in course with ID $courseId")
 					it.hook.sendMessageInfo("You already have access to this course!").queue()
 					return@Cmd
 				}
@@ -275,7 +267,7 @@ class CommandManager : ListenerAdapter() {
 				// Check if course exists
 				val course = DatabaseManager.getCourses().firstOrNull { c -> c.lvaNr == courseId }
 				if (course == null) {
-					println("Could not find course with ID $courseId")
+					Logger.warn("Could not find course with ID $courseId")
 					it.hook.sendMessageUserError("Could not find course with ID $courseId").queue()
 					return@Cmd
 				}
@@ -285,7 +277,7 @@ class CommandManager : ListenerAdapter() {
 				updatedStudent.assignToCourses()
 				addStudentToCourseChannels(updatedStudent)
 
-				println("Enrolled ${actualStudent.discordName} in course ${course.lvaName}")
+				Logger.info("Enrolled ${actualStudent.discordName} in course ${course.lvaName}")
 				it.hook.sendMessageOK("You joined the course ${course.lvaName}").queue()
 			},
 			OptionData(OptionType.STRING, "course-id", "The course ID to join. E.g., 123.456", true)
@@ -301,7 +293,7 @@ class CommandManager : ListenerAdapter() {
 				// Check if user is subscribed to Eugen Service
 				val student = getStudentFromName(it.user.name)
 				if (student == null) {
-					println("${it.user.name} didn't use /kusss yet. Can't join course channel")
+					Logger.info("${it.user.name} didn't use /kusss yet. Can't join course channel")
 					it.hook.sendMessageUserError("Please use `/kusss` first").queue()
 					return@Cmd
 				}
@@ -325,7 +317,7 @@ class CommandManager : ListenerAdapter() {
 				if (DatabaseManager.getStudentEnrollment()
 						.none { (dN, cId) -> dN == actualStudent.discordName && cId == courseId }
 				) {
-					println("${actualStudent.discordName} not in a course with ID $courseId")
+					Logger.info("${actualStudent.discordName} not in a course with ID $courseId")
 					it.hook.sendMessageInfo("You are not in a course with that id!").queue()
 					return@Cmd
 				}
@@ -333,7 +325,7 @@ class CommandManager : ListenerAdapter() {
 				// Get course
 				val course = DatabaseManager.getCourses().firstOrNull { c -> c.lvaNr == courseId }
 				if (course == null) {
-					println("Could not find course with ID $courseId")
+					Logger.info("Could not find course with ID $courseId")
 					it.hook.sendMessageUserError("Could not find course with ID $courseId").queue()
 					return@Cmd
 				}
@@ -342,7 +334,7 @@ class CommandManager : ListenerAdapter() {
 				val channelName = Util.fixLvaName(course.lvaName, true)
 				val channel = guild.textChannels.find { c -> c.name == channelName }
 				if(channel == null) {
-					println("Could not find channel with name $channelName")
+					Logger.info("Could not find channel with name $channelName")
 					it.hook.sendMessageBotError("Could not find channel with name $channelName").queue()
 					return@Cmd
 				}
@@ -353,7 +345,7 @@ class CommandManager : ListenerAdapter() {
 				// Remove user from channel
 				removeStudentFromCourseChannel(it.member!!, channel)
 
-				println("Removed ${actualStudent.discordName} from course ${course.lvaName}")
+				Logger.info("Removed ${actualStudent.discordName} from course ${course.lvaName}")
 				it.hook.sendMessageOK("You left the course ${course.lvaName}").queue()
 			},
 			OptionData(OptionType.STRING, "course-id", "The course ID to join. E.g., 123.456", true)
@@ -366,13 +358,13 @@ class CommandManager : ListenerAdapter() {
 	 */
 	override fun onSlashCommandInteraction(event: SlashCommandInteractionEvent) {
 		val receivedCommand = event.name
-		println("Received /$receivedCommand")
+		Logger.info("Received /$receivedCommand")
 
 		// Find a command that matches the received command otherwise return
 		val cmd = cmdList.firstOrNull { it.name == receivedCommand }
 
 		if (cmd == null) {
-			println("No matching cmd found!")
+			Logger.warn("No matching cmd found!")
 			event.replyBotError("Some internal error occurred!")
 			return
 		}
@@ -391,7 +383,7 @@ class CommandManager : ListenerAdapter() {
 	override fun onButtonInteraction(event: ButtonInteractionEvent) {
 		when {
 			event.componentId.startsWith(DEL_KUSSS_PREFIX) -> handleDeleteKusssButtonInteraction(event)
-			else -> println("Unknown button interaction!")
+			else -> Logger.warn("Unknown button interaction!")
 		}
 	}
 
@@ -410,14 +402,14 @@ class CommandManager : ListenerAdapter() {
 				val category = event.guild!!.categories.find { category -> category.name == CATEGORY_NAME }
 				if (category == null) {
 					// Does not exist
-					println("Category $CATEGORY_NAME does not exist")
+					Logger.info("Category $CATEGORY_NAME does not exist")
 					event.hook.sendMessageInfo("Category $CATEGORY_NAME does not exist").queue()
 					return
 				}
 
 				// Remove all channels in category
 				category.textChannels.forEach { channel ->
-					channel.delete().queue().let { println("Deleted channel ${channel.name}") }
+					channel.delete().queue().let { Logger.info("Deleted channel ${channel.name}") }
 				}
 
 				// Remove category
@@ -425,15 +417,15 @@ class CommandManager : ListenerAdapter() {
 					${StatusEmoji.OK} Deleted category ${category.name} and it's channels
 					https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbDI4cmg1c3J3bThwdGUxaGd2eHJ3dzhoc2h0dXVxZHdrNHBicDM3ZSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/TxlxkVvdWfdRK/giphy.gif
 				""".trimMargin()).queue()
-				println("Deleted category ${category.name}")
+				Logger.info("Deleted category ${category.name}")
 			}
 			"${DEL_KUSSS_PREFIX}abort" -> {
 				event.message.editMessageComponents().queue()
 				event.editMessage("${StatusEmoji.OK} Aborted deletion of KUSSS-related channels").queue()
-				println("Aborted deletion of KUSSS-related channels")
+				Logger.info("Aborted deletion of KUSSS-related channels")
 			}
 			else -> {
-				println("Unknown button interaction for prefix ${DEL_KUSSS_PREFIX}!")
+				Logger.warn("Unknown button interaction for prefix ${DEL_KUSSS_PREFIX}!")
 			}
 		}
 	}
@@ -445,7 +437,7 @@ class CommandManager : ListenerAdapter() {
 	 */
 	override fun onGuildReady(event: GuildReadyEvent) {
 		super.onGuildReady(event)
-		println("${event.guild.name} is ready. Adding ${cmdList.size} commands.")
+		Logger.info("${event.guild.name} is ready. Adding ${cmdList.size} commands.")
 		if (Eugen.devMode)
 			registerCommands(event.guild.updateCommands())
 	}
@@ -522,18 +514,18 @@ class CommandManager : ListenerAdapter() {
 
 			if (channel.members.contains(guildMember)) {
 				// Skip, user is already added to course
-				println("${student.discordName} already assigned to channel ${channel.name}")
+				Logger.info("${student.discordName} already assigned to channel ${channel.name}")
 			} else {
 				// Add user to channel
 				channel.manager.putPermissionOverride(
 					guildMember,
 					listOf(Permission.VIEW_CHANNEL, Permission.MESSAGE_SEND),
 					emptyList()
-				).queue().let { println("Assigned ${student.discordName} to channel ${channel.name}") }
+				).queue().let { Logger.info("Assigned ${student.discordName} to channel ${channel.name}") }
 			}
 		}
 
-		println("All channels for ${student.discordName} queued!")
+		Logger.info("All channels for ${student.discordName} queued!")
 	}
 
 	/**
@@ -547,7 +539,7 @@ class CommandManager : ListenerAdapter() {
 			member,
 			emptyList(),
 			listOf(Permission.VIEW_CHANNEL, Permission.MESSAGE_SEND)
-		).queue().let {	println("Removed ${member.nickname} from channel ${channel.name}") }
+		).queue().let {	Logger.info("Removed ${member.nickname} from channel ${channel.name}") }
 	}
 
 	/**
@@ -575,7 +567,7 @@ class CommandManager : ListenerAdapter() {
 		)
 
 		val channel = channelAction.complete()
-		println("Created channel ${channel.name}")
+		Logger.info("Created channel ${channel.name}")
 		return channel
 	}
 	private fun formatExamTopic(uri: String, nextExam : Exam?) : String {
@@ -587,10 +579,10 @@ class CommandManager : ListenerAdapter() {
 	private fun updateCourseTopic(channel: TextChannel, uri: String, nextExam : Exam?) {
 		val examTopic = formatExamTopic(uri, nextExam);
 		if (channel.topic == examTopic) {
-			println("Topic of channel ${channel.name} already up-to-date.")
+			Logger.info("Topic of channel ${channel.name} already up-to-date.")
 		} else {
 			channel.manager.setTopic(examTopic).queue()
-			println("Updated topic of channel ${channel.name}")
+			Logger.info("Updated topic of channel ${channel.name}")
 		}
 	}
 
@@ -603,7 +595,7 @@ class CommandManager : ListenerAdapter() {
 	private fun createCategory(guild: Guild, name: String): Category {
 		val categoryAction = guild.createCategory(name)
 		val category = categoryAction.complete()
-		println("Created category $name on ${guild.name}")
+		Logger.info("Created category $name on ${guild.name}")
 		return category
 	}
 
@@ -621,7 +613,7 @@ class CommandManager : ListenerAdapter() {
 		// Check and create KUSSS role if not existing
 		var role = guild.roles.find { it.name == ROLE_NAME }
 		if (role == null) {
-			println("Creating $ROLE_NAME role on ${guild.name}")
+			Logger.info("Creating $ROLE_NAME role on ${guild.name}")
 			val roleAction = guild.createRole()
 			roleAction.setName(ROLE_NAME)
 			roleAction.setColor(Color.ORANGE)
@@ -637,12 +629,12 @@ class CommandManager : ListenerAdapter() {
 
 		val usersWithKusssRole = guild.findMembersWithRoles(role).get()
 		if (usersWithKusssRole.any { it.user == user }) {
-			println("${student.discordName} already in role $ROLE_NAME on ${guild.name}")
+			Logger.info("${student.discordName} already in role $ROLE_NAME on ${guild.name}")
 			return
 		}
 
 		guild.addRoleToMember(user, role).queue()
-		println("${student.discordName} added to role $ROLE_NAME on ${guild.name}")
+		Logger.info("${student.discordName} added to role $ROLE_NAME on ${guild.name}")
 	}
 
 	/**
@@ -651,10 +643,10 @@ class CommandManager : ListenerAdapter() {
 	 */
 	private fun reloadEntries(students: Array<Student>) {
 		if(students.isEmpty()) {
-			println("Nothing to reload!")
+			Logger.info("Nothing to reload!")
 			return
 		}
-		println("Reloading data for ${students.size} students")
+		Logger.info("Reloading data for ${students.size} students")
 		students.forEach {
 			it.assignToCourses()
 			addUserToKusssRole(it)
@@ -682,12 +674,12 @@ class CommandManager : ListenerAdapter() {
 		val sortedChannels = channels.sortedBy { it.name }
 
 		if (channels == sortedChannels) {
-			println("Skipping channel sorting")
+			Logger.info("Skipping channel sorting")
 			return
 		}
 
 		sortedChannels.forEachIndexed { index, channel ->
-			channel.manager.setPosition(index).queue().let { println("Moved ${channel.name} to position $index") }
+			channel.manager.setPosition(index).queue().let { Logger.info("Moved ${channel.name} to position $index") }
 		}
 	}
 

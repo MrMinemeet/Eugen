@@ -7,6 +7,7 @@ import net.dv8tion.jda.api.requests.GatewayIntent
 import net.dv8tion.jda.api.utils.ChunkingFilter
 import net.dv8tion.jda.api.utils.MemberCachePolicy
 import net.dv8tion.jda.api.utils.cache.CacheFlag
+import util.Logger
 import java.io.FileNotFoundException
 
 object Eugen {
@@ -30,6 +31,7 @@ object Eugen {
 			.build()
 	} catch (e: Exception) {
 		if (System.getenv("EUGEN_BOT_TOKEN") == null) {
+			Logger.error("'EUGEN_BOT_TOKEN' environment variable is not set")
 			throw RuntimeException("'EUGEN_BOT_TOKEN' environment variable is not set")
 		}
 
@@ -40,7 +42,7 @@ object Eugen {
 	private val manager = try {
 		File("managers.txt").readLines()
 	} catch(e: FileNotFoundException) {
-		println("No 'managers.txt' file found")
+		Logger.warn("No 'managers.txt' file found")
 		listOf()
 	}
 

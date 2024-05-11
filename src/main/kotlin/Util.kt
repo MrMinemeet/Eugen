@@ -1,3 +1,4 @@
+import util.Logger
 import java.io.BufferedReader
 import java.io.IOException
 import java.io.InputStreamReader
@@ -66,8 +67,8 @@ object Util {
 				response.append(line).append("\n")
 			}
 		} catch (e: IOException) {
-			System.err.println("Failed to get ics content from provided URL")
-			System.err.println(e.message)
+			Logger.error("Failed to get ics content from provided URL")
+			Logger.error(e.message ?: "No error message provided")
 		}
 		return response.toString()
 	}
@@ -82,7 +83,7 @@ object Util {
 			requestCache.entries.removeIf { it.value.timestamp + CACHE_TTL < now }
 			oldCacheCount
 		}
-		println("Request Cache cleaned. Removed ${oldCacheCount- requestCache.count()} elements")
+		Logger.info("Request Cache cleaned. Removed ${oldCacheCount- requestCache.count()} elements")
 	}
 
 	/**
