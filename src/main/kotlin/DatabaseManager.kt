@@ -1,4 +1,5 @@
 import data.*
+import util.Logger
 import java.net.URI
 import java.sql.Connection
 import java.sql.DriverManager
@@ -115,20 +116,20 @@ object DatabaseManager {
 
 	fun insertCourse(course : Course, debugOutput: Boolean = false) {
 		val lvaType : String = course.lvaType.toString()
-		if (debugOutput) println(lvaType)
+		if (debugOutput) Logger.debug(lvaType)
 
 		val lvaNr : String = course.lvaNr
-		if (debugOutput) println(lvaNr)
+		if (debugOutput) Logger.debug(lvaNr)
 		val stmtStr = """
         INSERT INTO courses(lvaNr, lvaName, lvaType, semester, url) VALUES(?,?,?,?,?) ON CONFLICT(lvaNr) 
         DO UPDATE SET lvaName=excluded.lvaName, lvaType=excluded.lvaType, semester=excluded.semester, url=excluded.url;
     """.trimIndent()
 
 		val semester : String = course.semester.toString()
-		if (debugOutput) println(semester)
+		if (debugOutput) Logger.debug(semester)
 
 		val lvaName : String = course.lvaName
-		if (debugOutput) println(lvaName)
+		if (debugOutput) Logger.debug(lvaName)
 
 		val url : String = course.uri.toString()
 
@@ -151,13 +152,13 @@ object DatabaseManager {
 		""".trimIndent()
 
 		val discordName: String = student.discordName
-		if (debugOutput) println(discordName)
+		if (debugOutput) Logger.debug(discordName)
 
 		val guildId: Long = student.guildId
-		if (debugOutput) println(guildId)
+		if (debugOutput) Logger.debug(guildId.toString())
 
 		val userToken: String = student.userToken
-		if (debugOutput) println(userToken)
+		if (debugOutput) Logger.debug(userToken)
 
 		val stmt = connection.prepareStatement(stmtStr)
 		stmt.setString(1, discordName)
@@ -166,7 +167,7 @@ object DatabaseManager {
 		stmt.setInt(4, student.studentId)
 		stmt.execute()
 
-		println("Inserted $discordName")
+		Logger.info("Inserted $discordName")
 	}
 
 	fun removeStudent(discordName: String) {
@@ -175,24 +176,24 @@ object DatabaseManager {
 		stmt.setString(1, discordName)
 		stmt.execute()
 
-		println("Removed user from database")
+		Logger.info("Removed user from database")
 	}
 
 	fun assignStudentToCourse(student : Student, course : Course, debugOutput: Boolean = false) {
 		val stmtStr = "INSERT INTO studentEnrollment(discordName, course_id) VALUES(?,?) ON CONFLICT(discordName, course_id) DO NOTHING"
 
 		val discordName : String = student.discordName
-		if (debugOutput) println(discordName)
+		if (debugOutput) Logger.debug(discordName)
 
 		val courseId : String = course.lvaNr
-		if (debugOutput) println(courseId)
+		if (debugOutput) Logger.debug(courseId)
 
 		val stmt = connection.prepareStatement(stmtStr)
 		stmt.setString(1, discordName)
 		stmt.setString(2, courseId)
 		stmt.execute()
 
-		println("Assigned $discordName to $courseId")
+		Logger.info("Assigned $discordName to $courseId")
 	}
 
 	fun removeStudentFromAllCourseEnrollments(discordName: String) {
