@@ -12,7 +12,7 @@ repositories {
 }
 
 dependencies {
-    runtimeOnly("org.xerial:sqlite-jdbc:3.45.3.0")
+    runtimeOnly("org.xerial:sqlite-jdbc:3.46.0.0")
     implementation("org.slf4j:slf4j-api:2.0.13")
     implementation("org.mnode.ical4j:ical4j:4.0.0-rc6")
     implementation("org.jsoup:jsoup:1.17.2")
